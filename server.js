@@ -28,7 +28,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*", // Permitir qualquer origem para testes
+    origin: allowedOrigins, // Usar o mesmo array do Express para CORS
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -39,9 +39,22 @@ app.use(helmet({
   contentSecurityPolicy: false // Desabilitar para testes
 }));
 
-// Configurar CORS para permitir todas as origens em ambiente de desenvolvimento
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://alerta-criminal-api.onrender.com',
+  'https://alerta-criminal-frontend.onrender.com',
+  'https://alerta-criminal-1.onrender.com' // Adicionado para permitir o frontend correto
+];
+
 app.use(cors({
-  origin: "*", // Permitir qualquer origem para testes
+  origin: function(origin, callback){
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
