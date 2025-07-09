@@ -1818,8 +1818,10 @@
             alertasList.innerHTML = 'Carregando...';
             try {
                 const token = localStorage.getItem('token');
+                // Exemplo de depuração antes do fetch
+                console.log('Token usado para /api/alerts:', localStorage.getItem('token'));
                 const response = await fetch(`${API_URL}/alerts?status=all`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (response.ok) {
                     const alerts = await response.json();
