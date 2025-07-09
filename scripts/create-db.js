@@ -3,11 +3,11 @@ const { Client } = require('pg');
 async function createDatabase() {
   // Conectar ao banco de dados postgres (banco padrão)
   const client = new Client({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'postgres',
-    password: 'kilson',
-    port: 5432,
+    user: process.env.DB_ADMIN_USER || 'postgres',
+    host: process.env.DB_ADMIN_HOST || 'localhost',
+    database: process.env.DB_ADMIN_DATABASE || 'postgres',
+    password: process.env.DB_ADMIN_PASSWORD || 'kilson',
+    port: process.env.DB_ADMIN_PORT ? parseInt(process.env.DB_ADMIN_PORT) : 5432,
   });
 
   try {
@@ -16,15 +16,15 @@ async function createDatabase() {
 
     // Verificar se o banco já existe
     const checkDb = await client.query(
-      "SELECT 1 FROM pg_database WHERE datname = 'sistema_alerta'"
+      `SELECT 1 FROM pg_database WHERE datname = '${process.env.DB_NAME || 'sistema_alerta'}'`
     );
 
     if (checkDb.rows.length === 0) {
       // Criar o banco de dados
-      await client.query('CREATE DATABASE sistema_alerta');
-      console.log('✅ Banco de dados sistema_alerta criado com sucesso');
+      await client.query(`CREATE DATABASE ${process.env.DB_NAME || 'sistema_alerta'}`);
+      console.log(`✅ Banco de dados ${process.env.DB_NAME || 'sistema_alerta'} criado com sucesso`);
     } else {
-      console.log('ℹ️ Banco de dados sistema_alerta já existe');
+      console.log(`ℹ️ Banco de dados ${process.env.DB_NAME || 'sistema_alerta'} já existe`);
     }
 
     await client.end();

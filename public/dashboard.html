@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistema de Alerta Criminal Luanda</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/jpeg" href="/Policia.jpg">
     <style>
         * {
             margin: 0;
@@ -1316,7 +1317,13 @@
         // Conectar Socket.io
         let socket = null;
         function connectSocket() {
-            socket = io('http://localhost:3000', {
+            let socketUrl;
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                socketUrl = 'http://localhost:3000';
+            } else {
+                socketUrl = 'https://alerta-criminal-api.onrender.com';
+            }
+            socket = io(socketUrl, {
                 auth: {
                     token: localStorage.getItem('token')
                 }

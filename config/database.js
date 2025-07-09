@@ -1,11 +1,12 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'alerta_criminal',
-  password: 'kilson',
-  port: 5432,
+  host: process.env.DB_HOST || 'dpg-d1msh0nfte5s73anbpcg-a.frankfurt-postgres.render.com',
+  user: process.env.DB_USER || 'alerta_criminal_user',
+  password: process.env.DB_PASSWORD || 'gBomtM2oKPE2PhgZ0okPG4fewOjtSJMW',
+  database: process.env.DB_NAME || 'alerta_criminal',
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 5432,
+  ssl: process.env.DB_SSL === "false" ? false : { rejectUnauthorized: false }
 });
 
 // Função para executar queries
@@ -125,7 +126,7 @@ const initialize = async () => {
         longitude DOUBLE PRECISION,
         status VARCHAR(20) DEFAULT 'novo',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+      )
     `);
 
     await query(`
