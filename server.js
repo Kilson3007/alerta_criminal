@@ -221,7 +221,7 @@ db.initialize()
     server.listen(PORT, () => {
       console.log(`🚨 Sistema de Alerta Criminal iniciado na porta ${PORT}`);
       console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`�� Cobertura: Luanda, Angola`);
+      console.log(` Cobertura: Luanda, Angola`);
       console.log(`🔗 Acesse: http://localhost:${PORT}`);
       console.log(`🔗 Dashboard: http://localhost:${PORT}/dashboard.html`);
     });
