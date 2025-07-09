@@ -3231,9 +3231,20 @@
     </script>
 
     <script>
-      const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:3000/api'
-        : 'https://alerta-criminal-api.onrender.com/api';
+        : 'https://alerta-criminal-1.onrender.com/api';
+      
+      // Uso:
+      fetch(`${API_URL}/alerts`)
+      fetch(`${API_URL}/alerts/location`)
+      
+      let socketUrl;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          socketUrl = 'http://localhost:3000';
+      } else {
+          socketUrl = 'https://alerta-criminal-1.onrender.com';
+      }
     </script>
 </body>
 </html> 

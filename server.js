@@ -40,16 +40,15 @@ app.use(helmet({
 }));
 
 const allowedOrigins = [
-  'http://localhost:3000',
-  'https://alerta-criminal-api.onrender.com',
-  'https://alerta-criminal-frontend.onrender.com',
-  'https://alerta-criminal-1.onrender.com' // Adicionado para permitir o frontend correto
+  'https://alerta-criminal-1.onrender.com',
+  'http://localhost:3000'
 ];
 
+// CORS deve ser o PRIMEIRO middleware
 app.use(cors({
   origin: function(origin, callback){
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
       return callback(new Error('Not allowed by CORS'));
@@ -59,6 +58,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.options('*', cors());
 
 // Rate Limiting
 const limiter = rateLimit({
