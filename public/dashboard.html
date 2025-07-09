@@ -1818,7 +1818,7 @@
             alertasList.innerHTML = 'Carregando...';
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:3000/api/alerts?status=all', {
+                const response = await fetch(`${API_URL}/alerts?status=all`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok) {
@@ -1865,7 +1865,7 @@
                               if (action === 'a_decorrer') newStatus = 'em_progresso';
                               if (!newStatus) return;
                               try {
-                                const response = await fetch(`/api/alerts/${alertId}/status`, {
+                                const response = await fetch(`${API_URL}/alerts/${alertId}/status`, {
                                   method: 'PATCH',
                                   headers: {
                                     'Content-Type': 'application/json',
@@ -1892,7 +1892,7 @@
                                 return;
                               }
                               try {
-                                const resp = await fetch(`/api/alerts/${alertId}/assign`, {
+                                const resp = await fetch(`${API_URL}/alerts/${alertId}/assign`, {
                                   method: 'PATCH',
                                   headers: {
                                     'Content-Type': 'application/json',
@@ -1983,7 +1983,7 @@
         // Função para atualizar o status de um alerta
         async function updateAlertStatus(alertId, newStatus) {
             try {
-                const response = await fetch(`/api/alerts/${alertId}/status`, {
+                const response = await fetch(`${API_URL}/alerts/${alertId}/status`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2521,7 +2521,7 @@
 
                     // Enviar alerta para o servidor
                     const token = localStorage.getItem('token');
-                    const response = await fetch('http://localhost:3000/api/alerts', {
+                    const response = await fetch(`${API_URL}/alerts`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2877,7 +2877,7 @@
         }
         try {
           const token = localStorage.getItem('token');
-          const resp = await fetch('/api/alerts/gemini-chat', {
+          const resp = await fetch(`${API_URL}/alerts/gemini-chat`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -2911,7 +2911,7 @@
           // Buscar dados completos do alerta via API
           try {
             const token = localStorage.getItem('token');
-            const resp = await fetch(`/api/alerts/${alertId}`, {
+            const resp = await fetch(`${API_URL}/alerts/${alertId}`, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
@@ -3045,7 +3045,7 @@
         alertasList.innerHTML = 'Carregando...';
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:3000/api/alerts?status=all', {
+            const response = await fetch(`${API_URL}/alerts?status=all`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -3092,7 +3092,7 @@
                           if (action === 'a_decorrer') newStatus = 'em_progresso';
                           if (!newStatus) return;
                           try {
-                            const response = await fetch(`/api/alerts/${alertId}/status`, {
+                            const response = await fetch(`${API_URL}/alerts/${alertId}/status`, {
                               method: 'PATCH',
                               headers: {
                                 'Content-Type': 'application/json',
@@ -3119,7 +3119,7 @@
                             return;
                           }
                           try {
-                            const resp = await fetch(`/api/alerts/${alertId}/assign`, {
+                            const resp = await fetch(`${API_URL}/alerts/${alertId}/assign`, {
                               method: 'PATCH',
                               headers: {
                                 'Content-Type': 'application/json',
@@ -3228,6 +3228,12 @@
     // Exibir unidades por padrão
     panels['unidades'].style.display = '';
     panels['alertas'].style.display = 'none';
+    </script>
+
+    <script>
+      const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api'
+        : 'https://alerta-criminal-api.onrender.com/api';
     </script>
 </body>
 </html> 
