@@ -1,0 +1,3226 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Alerta Criminal Luanda</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header img {
+            height: 40px;
+            width: 40px;
+            object-fit: contain;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .test-sound-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .test-sound-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        
+        .admin-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .admin-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 25px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        
+        /* Layout Container */
+        .container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab:hover {
+            background: #f0f0f0;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        /* Units List */
+        .unit-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .unit-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .unit-card.emergency {
+            border-left-color: #ff6b6b;
+            background: #fff5f5;
+        }
+        
+        .unit-card.nearby {
+            border-left-color: #4caf50;
+            background: #f1f8e9;
+            box-shadow: 0 3px 15px rgba(76, 175, 80, 0.2);
+            position: relative;
+        }
+        
+        .unit-card.nearby::after {
+            content: "Próxima";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4caf50;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .unit-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .unit-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .unit-distance {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        /* Alerts List */
+        .alert-card {
+            background: #fff5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ff6b6b;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .alert-time {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        .alert-status {
+            background: #ff6b6b;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        
+        /* Map Container */
+        .map-container {
+            flex: 1;
+            position: relative;
+            background: #e0e0e0;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Map Placeholder (antes de carregar Google Maps) */
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            background: linear-gradient(45deg, #f0f0f0 25%, #e0e0e0 25%, #e0e0e0 50%, #f0f0f0 50%, #f0f0f0 75%, #e0e0e0 75%, #e0e0e0);
+            background-size: 40px 40px;
+        }
+        
+        .map-placeholder h2 {
+            color: #666;
+        }
+        
+        /* Map Controls */
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .map-control-btn {
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .map-control-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+        
+        .map-control-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .map-control-btn::before {
+            content: attr(title);
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        
+        .map-control-btn:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Manual Location Panel */
+        .manual-location-panel {
+            position: absolute;
+            top: 60px;
+            right: 60px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            width: 250px;
+        }
+        
+        .manual-location-panel.active {
+            display: block;
+        }
+        
+        .manual-location-panel h4 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        
+        .manual-location-panel input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .manual-location-panel button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .manual-location-panel button:hover {
+            background: #5a67d8;
+        }
+        
+        .manual-location-panel .presets {
+            margin: 10px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        
+        .manual-location-panel .preset-btn {
+            background: #f0f2f5;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .manual-location-panel .preset-btn:hover {
+            background: #e0e3e8;
+        }
+        
+        /* Estatísticas */
+        .stats-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border-radius: 30px;
+            padding: 5px 20px;
+            display: flex;
+            gap: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        #alertsCount {
+            color: #ff6b6b;
+        }
+        
+        #agentsCount {
+            color: #4caf50;
+        }
+        
+        /* Animações */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 50%;
+            }
+            
+            .map-container {
+                height: 50%;
+            }
+            
+            .stats-bar {
+                display: none;
+            }
+        }
+        
+        /* Search Box */
+        .search-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            z-index: 100;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 14px;
+            outline: none;
+        }
+        
+        /* Place Info */
+        .place-info {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            max-width: 300px;
+            display: none;
+            z-index: 100;
+        }
+        
+        .place-info.active {
+            display: block;
+        }
+        
+        .place-info h4 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        
+        .place-info p {
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        
+        .place-info .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .place-info .close:hover {
+            color: #666;
+        }
+        
+        .place-info .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .place-info .action-btn {
+            background: #f0f2f5;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .place-info .action-btn:hover {
+            background: #e0e3e8;
+        }
+        
+        .place-info .action-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .place-info .action-btn.primary:hover {
+            background: #5a67d8;
+        }
+        
+        /* Adicionar estilos para o botão de rastreamento */
+        .tracking-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .tracking-btn:hover {
+            background: #ff5252;
+        }
+        
+        .alert-card.tracking {
+            border-left-color: #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Adicionar estilos para informações de rastreamento */
+        .tracking-info {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 250px;
+            display: none;
+        }
+        
+        .tracking-info.active {
+            display: block;
+        }
+        
+        .tracking-info h4 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tracking-info .info-item {
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tracking-info .info-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .tracking-info .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .tracking-info .danger-zone {
+            color: #ff6b6b;
+            font-weight: 500;
+        }
+        
+        .tracking-info .speed-warning {
+            color: #ff9800;
+        }
+        
+        .tracking-info .deviation-warning {
+            color: #f44336;
+        }
+        
+        .tracking-info .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .tracking-info .close:hover {
+            color: #666;
+        }
+
+        .admin-unidades-btn {
+            background: rgba(255,255,255,0.2);
+            color: white !important;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .admin-unidades-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .btn-unidade-admin {
+            background: rgba(255,255,255,0.2);
+            color: white !important;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .btn-unidade-admin i {
+            color: white !important;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .btn-unidade-admin:hover {
+            background: rgba(255,255,255,0.3);
+            color: white !important;
+        }
+        .alert-card-list.selected {
+          border-left: 6px solid #667eea !important;
+          background: #e0e7ff !important;
+          box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <img src="/Policia.jpg" alt="Polícia Nacional">
+            <h1>Sistema de Alerta Criminal - Luanda</h1>
+        </div>
+        <div class="header-right">
+            <button class="test-sound-btn" onclick="playAlertSound()" title="Testar Som de Alerta">
+                🔊 Testar Som
+            </button>
+            <a href="/admin/users.html" class="admin-button" id="adminButton" style="display:none;">
+                <i class="fas fa-users-cog"></i> Gestão de Usuários
+            </a>
+            <!-- Botão Unidades (apenas admin) -->
+            
+           
+            <!-- Botão Logs de Alertas (inicialmente oculto) -->
+            <a href="/admin/logs-alertas.html" class="admin-button" id="logsAlertasButton" style="display: none;">
+                <i class="fas fa-clipboard-list"></i> Logs de Alertas
+            </a>
+            <a href="/admin/unidade.html" class="btn-unidade-admin" id="btnUnidadeAdmin" style="display:none;">
+                <i class="fas fa-building"></i> <span style="color:white;vertical-align:middle;">Unidades</span>
+            </a>
+            <div class="user-info">
+                <div class="status-indicator"></div>
+                <span id="userName">Carregando...</span>
+            </div>
+            <button id="logoutBtn" onclick="logout()">Sair</button>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <!-- Tabs -->
+            <div class="tabs" style="display: flex; justify-content: center; border-bottom: 2px solid #e0e0e0; margin-bottom: 18px;">
+                <div class="tab active" data-tab="unidades" style="flex:1; text-align:center; padding: 12px 0; cursor:pointer; font-weight:500; color:#667eea;">Unidades</div>
+                <div class="tab" data-tab="alertas" style="flex:1; text-align:center; padding: 12px 0; cursor:pointer; font-weight:500; color:#667eea;">Alertas</div>
+            </div>
+            
+            <!-- Painel de Alertas -->
+            <div id="alertas-panel" class="tab-panel" style="display:none;">
+                <h2 style="margin-bottom: 15px;">Alertas Recentes</h2>
+                <div id="alertasList" style="max-height: 65vh; overflow-y: auto;"></div>
+            </div>
+
+            <!-- Painel de Unidades -->
+                <div id="unidades-panel" class="tab-panel active">
+                <h2 style="margin-bottom: 15px;">Unidades Policiais</h2>
+                <div id="unitsList" style="max-height: 65vh; overflow-y: auto;">
+                        <!-- Unidades serão carregadas aqui -->
+                        </div>
+            </div>
+        </div>
+        
+        <!-- Map Container -->
+        <div class="map-container">
+            <!-- Search Box -->
+            <div class="search-container">
+                <input type="text" id="searchBox" class="search-box" placeholder="Buscar locais em Luanda...">
+            </div>
+            
+            <!-- Place Info -->
+            <div class="place-info" id="placeInfo">
+                <span class="close" onclick="closePlaceInfo()">&times;</span>
+                <h4 id="placeName">Nome do Local</h4>
+                <p id="placeAddress">Endereço</p>
+                <p id="placeType">Tipo</p>
+                <div class="actions">
+                    <button class="action-btn" onclick="getDirections()">Como Chegar</button>
+                    <button class="action-btn primary" onclick="reportEmergency()">Reportar</button>
+                </div>
+            </div>
+            
+            <!-- Map Placeholder -->
+            <div id="map" class="map-placeholder">
+                <h2>🗺️ Mapa de Luanda</h2>
+                <p>Google Maps será carregado aqui</p>
+                <p style="color: #999;">Fase 2 - Passo 2: Integrar Google Maps API</p>
+            </div>
+            
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button class="map-control-btn" onclick="centerMap()" title="Centralizar Mapa">📍</button>
+                <button class="map-control-btn" onclick="toggleMapLayer()" title="Alternar Satélite">🏙️</button>
+                <button class="map-control-btn" onclick="togglePointsOfInterest()" id="poiButton" title="Mostrar Pontos de Interesse">🏫</button>
+                <button class="map-control-btn" onclick="toggleManualLocation()" title="Definir Localização">📌</button>
+            </div>
+            
+            <!-- Manual Location Panel -->
+            <div class="manual-location-panel" id="manualLocationPanel">
+                <h4>Definir Localização</h4>
+                <div class="presets">
+                    <button class="preset-btn" onclick="setPresetLocation('Ingombota')">Ingombota</button>
+                    <button class="preset-btn" onclick="setPresetLocation('Maianga')">Maianga</button>
+                    <button class="preset-btn" onclick="setPresetLocation('Talatona')">Talatona</button>
+                    <button class="preset-btn" onclick="setPresetLocation('Kilamba')">Kilamba</button>
+                </div>
+                <input type="text" id="manualLat" placeholder="Latitude (ex: -8.8159)" value="-8.8159">
+                <input type="text" id="manualLng" placeholder="Longitude (ex: 13.2306)" value="13.2306">
+                <button onclick="setManualLocation()">Aplicar Localização</button>
+            </div>
+            
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-value" id="unitsCount">2</span>
+                    <span class="stat-label">Unidades</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="statsAlertsCount" style="color: #ff6b6b;">0</span>
+                    <span class="stat-label">Alertas Ativos</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="agentsCount">1</span>
+                    <span class="stat-label">Agentes Online</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Adicionar div para informações de rastreamento -->
+    <div class="tracking-info" id="trackingInfo">
+        <span class="close" onclick="closeTrackingInfo()">&times;</span>
+        <h4>📡 Rastreamento Ativo</h4>
+        <div class="info-item">
+            <div class="info-label">Velocidade Atual</div>
+            <div class="info-value" id="currentSpeed">-- km/h</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Velocidade Média</div>
+            <div class="info-value" id="averageSpeed">-- km/h</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Direção</div>
+            <div class="info-value" id="currentDirection">--</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Zonas de Perigo Próximas</div>
+            <div class="info-value" id="dangerZones">Nenhuma</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Status da Rota</div>
+            <div class="info-value" id="routeStatus">Normal</div>
+        </div>
+    </div>
+    
+    <!-- Google Maps API -->
+    <script>
+        // Carregar a chave da API do Google Maps do servidor
+        fetch('/api/config/maps-key')
+            .then(response => response.json())
+            .then(data => {
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places&callback=initMap`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            })
+            .catch(error => console.error('Erro ao carregar a chave do Google Maps:', error));
+    </script>
+    
+    <script>
+        // Variáveis globais
+        let currentUser = null;
+        let isTracking = false;
+        let map = null;
+        let userMarker = null;
+        let trackingInterval = null;
+        let unitMarkers = [];
+        let alertMarkers = [];
+        let directionsService;
+        let directionsRenderer;
+        let currentPosition = null;
+        let markers = [];
+        
+        // Adicionar variáveis globais para rastreamento
+        let alertTracking = {
+            active: false,
+            alertId: null,
+            marker: null,
+            path: null,
+            pathCoordinates: [],
+            lastPosition: null
+        };
+        
+        // Adicionar variáveis globais para marcadores de policiais
+        let policeMarkers = [];
+        
+        // Coordenadas centrais de Luanda
+        const LUANDA_CENTER = { lat: -8.8368, lng: 13.2343 };
+        
+        // Unidades policiais de Luanda (REMOVER ARRAY ESTÁTICO)
+        // const POLICE_UNITS = [ ... ];
+        let policeUnits = [];
+        
+        // Inicializar Google Maps
+        function initMap() {
+            console.log('✅ Google Maps API carregada. Inicializando mapa.');
+            // Remover placeholder
+            document.getElementById('map').classList.remove('map-placeholder');
+            document.getElementById('map').innerHTML = '';
+            
+            // Criar mapa centrado em Luanda
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: LUANDA_CENTER,
+                zoom: 13,
+                mapTypeId: 'roadmap',
+                styles: [ 
+                    // Remover estilos personalizados para mostrar todos os detalhes do mapa
+                ],
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_RIGHT
+                },
+                fullscreenControl: true,
+                streetViewControl: true,
+                zoomControl: true
+            });
+            
+            // Adicionar marcadores das unidades policiais
+            addPoliceUnitMarkers();
+            
+            // Adicionar busca de locais
+            initSearchBox();
+            
+            // Adicionar botão "Minha Localização" personalizado
+            const locationButton = document.createElement("button");
+            locationButton.classList.add("map-control-btn");
+            locationButton.innerHTML = "📍";
+            locationButton.title = "Mostrar minha localização";
+            
+            map.controls[google.maps.ControlPosition.RIGHT_TOP].push(locationButton);
+            
+            locationButton.addEventListener("click", () => {
+                showMyLocation();
+            });
+            
+            // Adicionar listener para cliques no mapa
+            map.addListener('click', function(event) {
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({
+                    'location': event.latLng
+                }, function(results, status) {
+                    if (status === 'OK' && results[0]) {
+                        showPlaceInfo(results[0], event.latLng);
+                    }
+                });
+            });
+            
+            // Inicializar serviços de direção
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true // Vamos usar nossos próprios marcadores
+            });
+            
+            // Inicializar geolocalização
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentPosition = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        // Adicionar marcador da posição atual
+                        new google.maps.Marker({
+                            position: currentPosition,
+                            map: map,
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                scale: 10,
+                                fillColor: "#4285F4",
+                                fillOpacity: 1,
+                                strokeColor: "#ffffff",
+                                strokeWeight: 2,
+                            },
+                            title: 'Sua localização'
+                        });
+                    },
+                    (error) => {
+                        console.error('Erro ao obter localização:', error);
+                    }
+                );
+            }
+
+            // Carregar unidades, alertas e agentes AGORA que o Google Maps está pronto
+            loadUnits();
+            carregarAlertasRecentes();
+            loadAgents();
+
+            // Gerar a lista inicial de unidades na sidebar com base no centro de Luanda
+            // Isso garante que a lista esteja populada e clicável mesmo sem a localização do usuário
+            updateDistances(LUANDA_CENTER); // Adicionado novamente
+        }
+        
+        // Adicionar marcadores das unidades policiais
+        function addPoliceUnitMarkers() {
+            // Limpar marcadores antigos
+            unitMarkers.forEach(({ marker }) => marker.setMap(null));
+            unitMarkers = [];
+            if (!policeUnits.length) return;
+            policeUnits.forEach(unit => {
+                if (!unit.lat || !unit.lng) return;
+                const marker = new google.maps.Marker({
+                    position: { lat: unit.lat, lng: unit.lng },
+                    map: map,
+                    title: unit.name,
+                    icon: {
+                        url: '/Policia.jpg',
+                        scaledSize: new google.maps.Size(28, 28),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(14, 14),
+                    }
+                });
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 10px;">
+                            <h4 style="margin: 0 0 5px 0;">${unit.name}</h4>
+                            <p style="margin: 0; color: #666;">${unit.address}</p>
+                            <button onclick="selectUnit(${unit.id})" style="margin-top: 10px; padding: 5px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Selecionar</button>
+                        </div>
+                    `
+                });
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+                unitMarkers.push({ marker, unit });
+            });
+        }
+        
+        // Verificar se está em Luanda
+        function isInLuanda(position) {
+            return position.lat >= -9.0 && position.lat <= -8.5 &&
+                   position.lng >= 13.0 && position.lng <= 13.5;
+        }
+        
+        // Calcular distância entre dois pontos
+        function calculateDistance(point1, point2) {
+            const R = 6371; // Raio da Terra em km
+            const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+            const dLon = (point2.lng - point1.lng) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distância em km
+        }
+        
+        // Atualizar distâncias das unidades
+        function updateDistances(userPos) {
+            updateUnitsList(userPos);
+        }
+        
+        // Selecionar unidade
+        function selectUnit(unitId) {
+            const unit = policeUnits.find(u => u.id === unitId);
+            if (!unit) return;
+            map.setCenter({ lat: unit.lat, lng: unit.lng });
+            map.setZoom(16);
+
+            // Buscar alertas ativos no mapa
+            const activeAlerts = alertMarkers
+                .map((marker, idx) => {
+                    // Tentar obter posição do marcador
+                    const pos = marker.getPosition();
+                    return {
+                        marker,
+                        lat: pos.lat(),
+                        lng: pos.lng(),
+                        idx
+                    };
+                });
+            if (activeAlerts.length === 0) {
+                // Nenhum alerta ativo
+                const infoWindow = new google.maps.InfoWindow({
+                    content: '<div style="padding:10px; color:#ff6b6b;">Nenhum alerta ativo para calcular rota.</div>'
+                });
+                infoWindow.open(map, unitMarkers.find(m => m.unit.id === unitId).marker);
+                return;
+            }
+            // Encontrar alerta mais próximo
+            const unitPos = { lat: unit.lat, lng: unit.lng };
+            let minDist = Infinity;
+            let closest = null;
+            activeAlerts.forEach(alert => {
+                const dist = calculateDistance(unitPos, { lat: alert.lat, lng: alert.lng });
+                if (dist < minDist) {
+                    minDist = dist;
+                    closest = alert;
+                }
+            });
+            if (!closest) return;
+            // Calcular rota Directions API
+            const origin = unitPos;
+            const destination = { lat: closest.lat, lng: closest.lng };
+            directionsService.route({
+                origin,
+                destination,
+                travelMode: 'DRIVING'
+            }, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    const route = result.routes[0];
+                    const leg = route.legs[0];
+                    // InfoWindow com distância e tempo
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `<div style='padding:10px;'><b>Rota até o alerta mais próximo</b><br>Distância: ${leg.distance.text}<br>Tempo estimado: ${leg.duration.text}</div>`
+                    });
+                    infoWindow.open(map, unitMarkers.find(m => m.unit.id === unitId).marker);
+                } else {
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: '<div style="padding:10px; color:#ff6b6b;">Erro ao calcular rota.</div>'
+                    });
+                    infoWindow.open(map, unitMarkers.find(m => m.unit.id === unitId).marker);
+                }
+            });
+        }
+        
+        // Toggle sidebar (mobile)
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+        
+        // Centralizar mapa
+        function centerMap() {
+            if (userMarker) {
+                map.setCenter(userMarker.getPosition());
+                map.setZoom(15);
+            } else {
+                map.setCenter(LUANDA_CENTER);
+                map.setZoom(13);
+            }
+        }
+        
+        // Toggle rastreamento
+        function toggleTracking() {
+            isTracking = !isTracking;
+            const btn = document.getElementById('trackingBtn');
+            
+            if (isTracking) {
+                btn.classList.add('active');
+                console.log('🟢 Rastreamento ativado');
+                
+                // Iniciar rastreamento
+                trackingInterval = setInterval(() => {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const newPos = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude
+                                };
+                                
+                                // Atualizar marcador
+                                if (userMarker) {
+                                    userMarker.setPosition(newPos);
+                                }
+                                
+                                // Atualizar distâncias
+                                updateDistances(newPos);
+                                
+                                // Enviar localização para servidor
+                                sendLocationUpdate(newPos);
+                            },
+                            (error) => {
+                                console.error('Erro no rastreamento:', error);
+                            }
+                        );
+                    }
+                }, 5000); // Atualizar a cada 5 segundos
+            } else {
+                btn.classList.remove('active');
+                console.log('🔴 Rastreamento desativado');
+                
+                // Parar rastreamento
+                if (trackingInterval) {
+                    clearInterval(trackingInterval);
+                    trackingInterval = null;
+                }
+            }
+        }
+        
+        // Enviar atualização de localização
+        async function sendLocationUpdate(position) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/alerts/location', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        latitude: position.lat,
+                        longitude: position.lng
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('📍 Localização atualizada');
+                }
+            } catch (error) {
+                console.error('Erro ao enviar localização:', error);
+            }
+        }
+        
+        // Enviar emergência
+        async function sendEmergency() {
+            if (!confirm('⚠️ Enviar alerta de EMERGÊNCIA?\n\nEsta ação notificará as unidades policiais próximas.')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Obter localização atual
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const alertData = {
+                            tipo: 'emergencia',
+                            descricao: 'Alerta de emergência via dashboard',
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                        
+                        const response = await fetch('http://localhost:3000/api/alerts', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify(alertData)
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('🚨 ALERTA ENVIADO:', data);
+                            
+                            // Adicionar marcador de alerta no mapa
+                            const alertMarker = new google.maps.Marker({
+                                position: { lat: alertData.latitude, lng: alertData.longitude },
+                                map: map,
+                                title: 'EMERGÊNCIA',
+                                icon: {
+                                    path: google.maps.SymbolPath.CIRCLE,
+                                    fillColor: '#ff6b6b',
+                                    fillOpacity: 1,
+                                    strokeColor: '#ffffff',
+                                    strokeWeight: 2,
+                                    scale: 10
+                                },
+                                animation: google.maps.Animation.BOUNCE
+                            });
+                            
+                            alertMarkers.push(alertMarker);
+                            
+                            // Centralizar no alerta
+                            map.setCenter({ lat: alertData.latitude, lng: alertData.longitude });
+                            map.setZoom(16);
+                            
+                            alert('✅ Alerta de emergência enviado com sucesso!\n\nAs unidades mais próximas foram notificadas.');
+                        } else {
+                            alert('❌ Erro ao enviar alerta. Tente novamente.');
+                        }
+                    },
+                    (error) => {
+                        alert('❌ Erro ao obter localização. Verifique as permissões.');
+                    }
+                );
+            } catch (error) {
+                console.error('Erro ao enviar emergência:', error);
+                alert('❌ Erro ao enviar alerta. Tente novamente.');
+            }
+        }
+        
+        // Verificar autenticação
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Por favor, faça login primeiro');
+                window.location.href = '/test.html';
+                return;
+            }
+            
+            // Pegar dados do usuário
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                currentUser = JSON.parse(userData);
+                document.getElementById('userName').textContent = currentUser.nome || 'Usuário';
+            }
+        }
+        
+        // Conectar Socket.io
+        let socket = null;
+        function connectSocket() {
+            socket = io('http://localhost:3000', {
+                auth: {
+                    token: localStorage.getItem('token')
+                }
+            });
+            
+            socket.on('connect', () => {
+                console.log('✅ Conectado ao servidor em tempo real');
+                document.querySelector('.status-indicator').style.background = '#4caf50';
+                
+                // Juntar-se à sala operacional para receber alertas
+                socket.emit('join-room', 'operacional');
+                console.log('🚔 Juntou-se à sala operacional');
+            });
+            
+            socket.on('room-joined', (data) => {
+                console.log('✅ Sala juntada:', data);
+            });
+            
+            socket.on('room-left', (data) => {
+                console.log('❌ Sala deixada:', data);
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('❌ Desconectado do servidor');
+                document.querySelector('.status-indicator').style.background = '#ff6b6b';
+            });
+            
+            // Receber novos alertas
+            socket.on('novo-alerta', (alert) => {
+                console.log('🚨 Novo alerta recebido:', alert);
+                
+                // Adicionar marcador no mapa
+                const alertMarker = new google.maps.Marker({
+                    position: { lat: parseFloat(alert.latitude), lng: parseFloat(alert.longitude) },
+                    map: map,
+                    title: `Alerta: ${alert.tipo}`,
+                    icon: {
+                        url: '/alerta.png', // Ícone customizado de alerta
+                        scaledSize: new google.maps.Size(28, 28),
+                        anchor: new google.maps.Point(14, 28)
+                    },
+                    animation: google.maps.Animation.DROP
+                });
+                
+                // InfoWindow para o alerta
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 10px;">
+                            <h4 style="margin: 0 0 5px 0; color: #ff6b6b;">⚠️ ${alert.tipo.toUpperCase()}</h4>
+                            <p style="margin: 0 0 5px 0;">${alert.descricao || 'Alerta de emergência'}</p>
+                            <small style="color: #666;">Cidadão: ${alert.user_nome}</small>
+                            <br>
+                            <small style="color: #666;">Hora: ${new Date(alert.created_at).toLocaleTimeString('pt-BR')}</small>
+                            <p><strong>Atribuído a:</strong> ${alert.policial_atribuido_nome ? 'Policial: ' + alert.policial_atribuido_nome : (alert.unidade_atribuida_nome ? 'Unidade: ' + alert.unidade_atribuida_nome : 'Não atribuído')}</p>
+                        </div>
+                    `
+                });
+                
+                alertMarker.addListener('click', () => {
+                    infoWindow.open(map, alertMarker);
+                });
+                
+                alertMarkers.push(alertMarker);
+                
+                // Adicionar à lista de alertas
+                addAlertToList(alert);
+                
+                // Atualizar contador
+                const alertsCountEl = document.getElementById('alertsCount');
+                if (alertsCountEl) {
+                  alertsCountEl.textContent = alertMarkers.length;
+                }
+                
+                // Notificar com som (opcional)
+                playAlertSound();
+
+                // NOVO: Leitura por voz automática ao receber novo alerta
+                if ('speechSynthesis' in window) {
+                  let mensagemVoz = `Atenção! Novo alerta recebido: ${alert.tipo || 'Alerta'}.`;
+                  if (alert.user_nome) mensagemVoz += ` Enviado por ${alert.user_nome}.`;
+                  if (alert.user_bairro) mensagemVoz += ` Bairro ${alert.user_bairro}.`;
+                  if (alert.user_municipio) mensagemVoz += ` Município ${alert.user_municipio}.`;
+                  mensagemVoz += ' Verifique imediatamente.';
+                  mensagemVoz = mensagemVoz.replace(/[\*#_,\[\]\{\}\/\\\.,]/g, '');
+                  console.log('[TTS] Mensagem de voz a ser lida:', mensagemVoz);
+                  try {
+                    window.speechSynthesis.cancel();
+                    const utterance = new window.SpeechSynthesisUtterance(mensagemVoz);
+                    utterance.lang = 'pt-BR';
+                    window.speechSynthesis.speak(utterance);
+                  } catch (e) {
+                    console.error('[TTS] Erro ao tentar falar:', e);
+                  }
+                }
+            });
+            
+            // Receber atualizações de localização
+            socket.on('location-update', (data) => {
+                console.log('📍 Atualização de localização:', data);
+                // Atualizar marcadores de agentes se necessário
+            });
+            
+            // Receber status de unidades
+            socket.on('unit-status', (data) => {
+                console.log('🚔 Status de unidade atualizado:', data);
+                updateUnitStatus(data);
+            });
+
+              // Modificar o listener de atualização de posição
+        ('alert-position-update', (data) => {
+            if (!asocket.onlertTracking.active || data.alertId !== alertTracking.alertId) return;
+            
+            const newPosition = {
+                lat: parseFloat(data.latitude),
+                lng: parseFloat(data.longitude)
+            };
+            
+            // Atualizar marcador
+            alertTracking.marker.setPosition(newPosition);
+            
+            // Adicionar ao caminho
+            alertTracking.pathCoordinates.push(newPosition);
+            alertTracking.path.setPath(alertTracking.pathCoordinates);
+            
+            // Atualizar última posição
+            alertTracking.lastPosition = newPosition;
+            
+            // Atualizar rota se necessário
+            if (currentPosition) {
+                showRouteToAlert(newPosition);
+            }
+            
+            // Mostrar informações de rastreamento
+            showTrackingInfo(data);
+            
+            // Atualizar informações no card do alerta
+            const alertCard = document.querySelector(`[data-alert-id="${data.alertId}"]`);
+            if (alertCard) {
+                const distance = calculateDistance(currentPosition, newPosition);
+                const timeElement = alertCard.querySelector('.alert-time');
+                if (timeElement) {
+                    timeElement.textContent = `Distância: ${distance.toFixed(1)}km | Velocidade: ${data.speed}km/h`;
+                }
+            }
+        });
+
+        // Ouvir evento de policiais online
+        socket.on('policiais-online', (policiais) => {
+            console.log('[SOCKET] policiais-online recebido:', policiais);
+            window.agentesOnline = policiais; // Atualiza a lista global
+            // Log detalhado de cada policial recebido
+            policiais.forEach((policial, idx) => {
+                console.log(`[SOCKET] policial[${idx}]:`, policial, 'lat:', policial.lat, 'lng:', policial.lng);
+            });
+            // Remover marcadores antigos
+            policeMarkers.forEach(marker => marker.setMap(null));
+            policeMarkers = [];
+            // Adicionar novos marcadores
+            policiais.forEach(policial => {
+                if (policial.lat && policial.lng) {
+                    console.log(`[SOCKET] Adicionando marccador para policial:`, policial.nome, policial.lat, policial.lng);
+                    const marker = new google.maps.Marker({
+                        position: { lat: parseFloat(policial.lat), lng: parseFloat(policial.lng) },
+                        map: map,
+                        label: {
+                            text: '👮‍♂️',
+                            fontSize: '22px',
+                        },
+                        title: policial.nome
+                    });
+                    // InfoWindow com nome, NIP e status
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `<div style='padding:8px;'><b>${policial.nome}</b><br>NIP: ${policial.nip || '-'}<br>Status: ${policial.status || 'online'}</div>`
+                    });
+                    marker.addListener('click', () => {
+                        infoWindow.open(map, marker);
+                    });
+                    policeMarkers.push(marker);
+                } else {
+                    console.warn(`[SOCKET] Policial sem localização válida:`, policial);
+                }
+            });
+            // Atualizar contador de agentes online
+            document.getElementById('agentsCount').textContent = policiais.length;
+            console.log(`[SOCKET] Contador de agentes online atualizado para:`, policiais.length);
+            // Só recarregar alertas se o usuário não estiver interagindo com o select
+            const selectOpen = window.isAssigningAgent || (document.activeElement && document.activeElement.tagName === 'SELECT');
+            if (!selectOpen) {
+              if (window._debounceLoadAlerts) clearTimeout(window._debounceLoadAlerts);
+              window._debounceLoadAlerts = setTimeout(() => {
+                if (typeof carregarAlertasRecentes === 'function') carregarAlertasRecentes();
+              }, 2000);
+            }
+        });
+        }
+        
+        // Adicionar alerta à lista
+        function addAlertToList(alert) {
+            const alertsList = document.getElementById('alertasList');
+            
+            // Remover mensagem de "sem alertas"
+            const noAlertsMsg = alertsList.querySelector('div[style*="text-align: center"]');
+            if (noAlertsMsg) {
+                noAlertsMsg.remove();
+            }
+            
+            // Criar card do alerta
+            const alertCard = document.createElement('div');
+            alertCard.className = 'alert-card';
+            alertCard.innerHTML = `
+                <div class="alert-header">
+                    <strong>🚨 ${alert.tipo === 'emergencia' ? 'Emergência' : 'Alerta'}</strong>
+                    <span class="alert-time">Agora</span>
+                </div>
+                <div class="unit-info">${alert.descricao || 'Alerta de emergência'}</div>
+                <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">
+                    <strong>Cidadão:</strong> ${alert.user_nome}
+                </div>
+                <span class="alert-status">NOVO</span>
+                <p><strong>Atribuído a:</strong> ${alert.policial_atribuido_nome ? 'Policial: ' + alert.policial_atribuido_nome : (alert.unidade_atribuida_nome ? 'Unidade: ' + alert.unidade_atribuida_nome : 'Não atribuído')}</p>
+            `;
+            
+            // Adicionar no início da lista
+            alertsList.insertBefore(alertCard, alertsList.firstChild);
+            
+            // Limitar a 10 alertas visíveis
+            const allAlerts = alertsList.querySelectorAll('.alert-card');
+            if (allAlerts.length > 10) {
+                allAlerts[allAlerts.length - 1].remove();
+            }
+            
+            // Atualizar tempos dos alertas
+            updateAlertTimes();
+        }
+        
+        // Atualizar tempos dos alertas
+        function updateAlertTimes() {
+            const alertTimes = document.querySelectorAll('.alert-time');
+            alertTimes.forEach((timeElem, index) => {
+                if (index === 0) {
+                    timeElem.textContent = 'Agora';
+                } else if (index === 1) {
+                    timeElem.textContent = 'Há 1 min';
+                } else {
+                    timeElem.textContent = `Há ${index} min`;
+                }
+            });
+        }
+        
+        // Tocar som de alerta
+        function playAlertSound() {
+            console.log('🔊 Tentando tocar som de alerta...');
+            
+            try {
+                // Método 1: Som simples usando Web Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Configurar o som de alerta
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Frequência alta
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.3);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime); // Volume moderado
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.4);
+                
+                console.log('🔊 Som de alerta tocado com Web Audio API');
+                
+                // Adicionar efeito visual de notificação
+                showAlertNotification();
+                
+                // Repetir o som após 1 segundo
+                setTimeout(() => {
+                    try {
+                        const oscillator2 = audioContext.createOscillator();
+                        const gainNode2 = audioContext.createGain();
+                        
+                        oscillator2.connect(gainNode2);
+                        gainNode2.connect(audioContext.destination);
+                        
+                        oscillator2.frequency.setValueAtTime(800, audioContext.currentTime);
+                        oscillator2.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                        
+                        gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                        
+                        oscillator2.start(audioContext.currentTime);
+                        oscillator2.stop(audioContext.currentTime + 0.2);
+                        
+                        console.log('🔊 Som de alerta repetido');
+                    } catch (e) {
+                        console.log('❌ Erro ao repetir som:', e);
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('❌ Erro com Web Audio API:', error);
+                
+                // Método 2: Fallback com Audio element
+                try {
+                    const audio = new Audio();
+                    audio.volume = 0.5;
+                    
+                    // Criar um som simples usando data URL
+                    const sampleRate = 44100;
+                    const duration = 0.5;
+                    const samples = sampleRate * duration;
+                    const audioData = new Float32Array(samples);
+                    
+                    for (let i = 0; i < samples; i++) {
+                        const t = i / sampleRate;
+                        audioData[i] = Math.sin(2 * Math.PI * 800 * t) * Math.exp(-t * 2);
+                    }
+                    
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const audioBuffer = audioContext.createBuffer(1, samples, sampleRate);
+                    audioBuffer.getChannelData(0).set(audioData);
+                    
+                    const source = audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(audioContext.destination);
+                    source.start();
+                    
+                    console.log('🔊 Som de alerta tocado com fallback');
+                    showAlertNotification();
+                    
+                } catch (fallbackError) {
+                    console.error('❌ Erro com fallback:', fallbackError);
+                    
+                    // Método 3: Notificação do navegador
+                    if ('Notification' in window) {
+                        if (Notification.permission === 'granted') {
+                            new Notification('🚨 NOVO ALERTA!', {
+                                body: 'Um novo alerta foi recebido',
+                                icon: '/Policia.jpg',
+                                requireInteraction: true
+                            });
+                        } else if (Notification.permission !== 'denied') {
+                            Notification.requestPermission().then(permission => {
+                                if (permission === 'granted') {
+                                    new Notification('🚨 NOVO ALERTA!', {
+                                        body: 'Um novo alerta foi recebido',
+                                        icon: '/Policia.jpg',
+                                        requireInteraction: true
+                                    });
+                                }
+                            });
+                        }
+                    }
+                    
+                    // Método 4: Notificação visual apenas
+                    showAlertNotification();
+                }
+            }
+        }
+        
+        // Mostrar notificação visual de alerta
+        function showAlertNotification() {
+            // Criar elemento de notificação visual
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+                z-index: 10000;
+                animation: slideInRight 0.5s ease-out;
+                font-weight: 600;
+                font-size: 14px;
+            `;
+            notification.innerHTML = '🚨 NOVO ALERTA RECEBIDO!';
+            
+            // Adicionar CSS para animação
+            if (!document.querySelector('#alert-notification-style')) {
+                const style = document.createElement('style');
+                style.id = 'alert-notification-style';
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes pulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                        100% { transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Adicionar efeito de pulso
+            notification.style.animation = 'slideInRight 0.5s ease-out, pulse 1s infinite';
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                notification.style.animation = 'slideInRight 0.5s ease-out reverse';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 500);
+            }, 5000);
+        }
+        
+        // Atualizar status da unidade
+        function updateUnitStatus(data) {
+            // Atualizar visual da unidade baseado no status
+            const unitCard = document.querySelector(`[data-unit-id="${data.unitId}"]`);
+            if (unitCard) {
+                if (data.status === 'emergency') {
+                    unitCard.classList.add('emergency');
+                } else {
+                    unitCard.classList.remove('emergency');
+                }
+            }
+        }
+        
+        // Carregar unidades
+        async function loadUnits() {
+            console.log('Carregando unidades da API...');
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch('/api/users/police-units', {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                policeUnits = (data.units || []).map((u, idx) => ({
+                    id: u.id,
+                    name: u.nome,
+                    address: u.endereco,
+                    lat: parseFloat(u.localizacao_lat),
+                    lng: parseFloat(u.localizacao_lng),
+                    type: u.tipo || 'esquadra',
+                    codigo_unidade: u.codigo_unidade || '',
+                    telefone: u.telefone || ''
+                }));
+                updateUnitsList(LUANDA_CENTER); // Atualiza lista lateral
+                addPoliceUnitMarkers(); // Atualiza marcadores no mapa
+                document.getElementById('unitsCount').textContent = policeUnits.length;
+            } catch (err) {
+                console.error('Erro ao carregar unidades:', err);
+                policeUnits = [];
+                document.getElementById('unitsCount').textContent = '0';
+                updateUnitsList(LUANDA_CENTER);
+            }
+        }
+        
+        // Atualizar lista lateral de unidades
+        function updateUnitsList(userPos) {
+            const unitsList = document.getElementById('unitsList');
+            unitsList.innerHTML = '';
+            if (!policeUnits.length) {
+                unitsList.innerHTML = '<div style="color:#888;text-align:center;">Nenhuma unidade cadastrada.</div>';
+                return;
+            }
+            // Calcular e ordenar por distância
+            const unitsWithDistance = policeUnits.map(unit => ({
+                ...unit,
+                distance: calculateDistance(userPos, unit)
+            })).sort((a, b) => a.distance - b.distance);
+            unitsWithDistance.forEach(unit => {
+                const card = document.createElement('div');
+                card.className = 'unit-card';
+                card.addEventListener('click', () => selectUnit(unit.id));
+                card.innerHTML = `
+                    <div class="unit-name">${unit.name}</div>
+                    <div class="unit-info">${unit.address} ${unit.telefone ? `<br><small>Tel: ${unit.telefone}</small>` : ''}</div>
+                    <span class="unit-distance">${unit.distance.toFixed(1)} km</span>
+                `;
+                unitsList.appendChild(card);
+            });
+        }
+        
+        // Carregar alertas ativos
+        async function carregarAlertasRecentes() {
+            const alertasList = document.getElementById('alertasList');
+            alertasList.innerHTML = 'Carregando...';
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/alerts?status=all', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const alerts = await response.json();
+                    if (alerts.length === 0) {
+                        alertasList.innerHTML = '<div style="text-align:center; color:#888;">Nenhum alerta encontrado.</div>';
+                    } else {
+                        const statusVisiveis = ['novo', 'em_progresso', 'a decorrer'];
+                        const alertasVisiveis = alerts.filter(alert => statusVisiveis.includes((alert.status || '').toLowerCase()));
+                        alertasList.innerHTML = alertasVisiveis.length === 0
+                            ? '<div style="text-align:center; color:#888;">Nenhum alerta encontrado.</div>'
+                            : alertasVisiveis.map((alert, idx) => {
+                                let actions = '';
+                                if (["novo", "em_progresso", "a decorrer"].includes((alert.status || '').toLowerCase())) {
+                                  actions += `<button class='alert-action-btn' data-action='resolver' data-id='${alert.id}' style='margin-right:6px;background:#4caf50;color:#fff;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;'>Resolver</button>`;
+                                  actions += `<button class='alert-action-btn' data-action='a_decorrer' data-id='${alert.id}' style='background:#667eea;color:#fff;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;'>A Decorrer</button>`;
+                                }
+                                let agentes = window.agentesOnline || [];
+                                let selectAgente = `<select class='select-agente' data-alert-id='${alert.id}' style='margin-right:6px;padding:3px 8px;border-radius:4px;'>`;
+                                selectAgente += `<option value=''>Atribuir a agente...</option>`;
+                                agentes.forEach(ag => {
+                                  selectAgente += `<option value='${ag.id}'>${ag.nome || ag.nip || ag.id}</option>`;
+                                });
+                                selectAgente += `</select>`;
+                                let btnAtribuir = `<button class='btn-atribuir-agente' data-alert-id='${alert.id}' style='background:#ffb300;color:#fff;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;'>Atribuir</button>`;
+                                return `
+                                <div class="alert-card-list" data-alert-idx="${idx}" data-alert-id="${alert.id}" style="border-left:4px solid ${alert.status==='resolvido'?'#4caf50':alert.status==='expirado'?'#ccc':'#e53e3e'}; background:#f7f7fb; margin-bottom:10px; padding:10px 12px; border-radius:8px; cursor:pointer;">
+                                  <strong>#${alert.id}</strong> - ${alert.tipo || 'Alerta'}<br>
+                                  <span style="font-size:0.95em; color:#555;">${alert.descricao || ''}</span><br>
+                                  <span style="font-size:0.85em; color:#888;">Status: <b>${alert.status}</b></span><br>
+                                  <div style='margin-top:6px;'>${actions}</div>
+                                  <div style='margin-top:8px;display:flex;align-items:center;'>${selectAgente}${btnAtribuir}</div>
+                                </div>
+                              `;
+                            }).join('');
+                        setTimeout(() => {
+                          document.querySelectorAll('.alert-action-btn').forEach(btn => {
+                            btn.addEventListener('click', async function(e) {
+                              e.stopPropagation();
+                              const action = this.getAttribute('data-action');
+                              const alertId = this.getAttribute('data-id');
+                              let newStatus = '';
+                              if (action === 'resolver') newStatus = 'resolvido';
+                              if (action === 'a_decorrer') newStatus = 'em_progresso';
+                              if (!newStatus) return;
+                              try {
+                                const response = await fetch(`/api/alerts/${alertId}/status`, {
+                                  method: 'PATCH',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                  },
+                                  body: JSON.stringify({ status: newStatus })
+                                });
+                                if (!response.ok) throw new Error('Falha ao atualizar status');
+                                // Recarregar alertas para atualizar lista/mapa
+                                carregarAlertasRecentes();
+                              } catch (err) {
+                                alert('Erro ao atualizar status do alerta');
+                              }
+                            });
+                          });
+                          document.querySelectorAll('.btn-atribuir-agente').forEach(btn => {
+                            btn.addEventListener('click', async function(e) {
+                              e.stopPropagation();
+                              const alertId = this.getAttribute('data-alert-id');
+                              const select = document.querySelector(`.select-agente[data-alert-id='${alertId}']`);
+                              const policialId = select ? select.value : '';
+                              if (!policialId) {
+                                alert('Selecione um agente para atribuir.');
+                                return;
+                              }
+                              try {
+                                const resp = await fetch(`/api/alerts/${alertId}/assign`, {
+                                  method: 'PATCH',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                  },
+                                  body: JSON.stringify({ policialId })
+                                });
+                                if (!resp.ok) throw new Error('Falha ao atribuir alerta');
+                                alert('Alerta atribuído com sucesso!');
+                                carregarAlertasRecentes();
+                              } catch (err) {
+                                alert('Erro ao atribuir alerta');
+                              }
+                            });
+                          });
+                          // Adicionar seleção de alerta ao clicar no card
+                          document.querySelectorAll('.alert-card-list').forEach(card => {
+                            card.addEventListener('click', function(e) {
+                              // Evitar conflito com botões internos
+                              if (e.target.closest('button') || e.target.closest('select')) return;
+                              document.querySelectorAll('.alert-card-list.selected').forEach(c => c.classList.remove('selected'));
+                              this.classList.add('selected');
+                            });
+                          });
+                        }, 0);
+                        // Limpar marcadores antigos do mapa antes de adicionar novos
+                        if (typeof alertMarkers !== 'undefined') {
+                          alertMarkers.forEach(obj => (obj.marker ? obj.marker.setMap(null) : obj.setMap(null)));
+                          alertMarkers = [];
+                        }
+                        // Adicionar apenas marcadores dos alertas visíveis
+                        alertasVisiveis.forEach((alert, idx) => {
+                            if (alert.latitude && alert.longitude && typeof map !== 'undefined') {
+                                const alertMarker = new google.maps.Marker({
+                                    position: { lat: parseFloat(alert.latitude), lng: parseFloat(alert.longitude) },
+                                    map: map,
+                                    title: `Alerta: ${alert.tipo}`,
+                                    icon: {
+                                        url: '/alerta.png',
+                                        scaledSize: new google.maps.Size(28, 28),
+                                        anchor: new google.maps.Point(14, 28)
+                                    },
+                                    animation: google.maps.Animation.DROP
+                                });
+                                const infoWindow = new google.maps.InfoWindow({
+                                    content: `<div style='padding:10px;min-width:200px;'>
+                                      <b>Alerta #${alert.id}</b><br>
+                                      <span><b>Tipo:</b> ${alert.tipo || '-'}</span><br>
+                                      <span><b>Status:</b> ${alert.status || '-'}</span><br>
+                                      <span><b>Descrição:</b> ${alert.descricao || '-'}</span><br>
+                                      <span><b>Cidadão:</b> ${alert.user_nome || '-'}</span><br>
+                                      <span><b>BI:</b> ${alert.user_bi || '-'}</span><br>
+                                      <span><b>Telefone:</b> ${alert.user_telefone || '-'}</span><br>
+                                      <span><b>Contato Familiar:</b> ${alert.contacto_familiar || '-'}</span><br>
+                                      <span><b>Município:</b> ${alert.user_municipio || '-'}</span><br>
+                                      <span><b>Bairro:</b> ${alert.user_bairro || '-'}</span><br>
+                                      <span><b>Data/Hora:</b> ${alert.created_at ? new Date(alert.created_at).toLocaleString('pt-BR') : '-'}</span><br>
+                                      <span><b>Atribuído a:</b> ${
+                                        alert.policial_atribuido_nome
+                                          ? 'Policial: ' + alert.policial_atribuido_nome
+                                          : (alert.unidade_atribuida_nome
+                                              ? 'Unidade: ' + alert.unidade_atribuida_nome
+                                              : 'Não atribuído')
+                                      }</span>
+                                    </div>`
+                                });
+                                // Sempre abrir o InfoWindow ao clicar no marcador
+                                alertMarker.addListener('click', () => {
+                                    infoWindow.open(map, alertMarker);
+                                });
+                                alertMarkers.push({ marker: alertMarker, alertId: alert.id, infoWindow });
+                            }
+                        });
+                        // Atualizar contador de alertas ativos
+                        const contador = document.getElementById('alertsCount');
+                        if (contador) contador.textContent = alertasVisiveis.length;
+                        const statsContador = document.getElementById('statsAlertsCount');
+                        if (statsContador) statsContador.textContent = alertasVisiveis.length;
+                    }
+                } else {
+                    alertasList.innerHTML = '<div style="color:#e53e3e;">Erro ao buscar alertas.</div>';
+                }
+            } catch (e) {
+                alertasList.innerHTML = '<div style="color:#e53e3e;">Erro ao buscar alertas.</div>';
+            }
+        }
+        
+        // Função para atualizar o status de um alerta
+        async function updateAlertStatus(alertId, newStatus) {
+            try {
+                const response = await fetch(`/api/alerts/${alertId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao atualizar status');
+                }
+
+                // Atualizar o status no card do alerta
+                const alertCard = document.querySelector(`[data-alert-id="${alertId}"]`);
+                if (alertCard) {
+                    const statusElement = alertCard.querySelector('.alert-status');
+                    if (statusElement) {
+                        statusElement.textContent = newStatus;
+                    }
+                }
+
+                // Recarregar alertas para atualizar o mapa
+                await carregarAlertasRecentes();
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                alert('Erro ao atualizar status do alerta');
+            }
+        }
+
+        // Função auxiliar para formatar tempo
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(minutes / 60);
+            
+            if (minutes < 60) {
+                return `${minutes} minuto${minutes !== 1 ? 's' : ''} atrás`;
+            } else if (hours < 24) {
+                return `${hours} hora${hours !== 1 ? 's' : ''} atrás`;
+            } else {
+                return date.toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
+        
+        // Carregar agentes online
+        async function loadAgents() {
+            // Removido valor estático, agora o contador é atualizado via socket 'policiais-online'
+            document.getElementById('agentsCount').textContent = '0'; // Inicializa com zero até receber do socket
+        }
+        
+        // Função para logout
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            window.location.href = '/';
+        }
+        
+        // Inicialização
+        window.onload = function() {
+            checkAuth();
+            connectSocket();
+            // Adicionar listeners para troca de abas
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    // Remover 'active' de todos os tabs e painéis
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                    // Adicionar 'active' à aba e painel clicados
+                    this.classList.add('active');
+                    const panel = document.getElementById(`${tabId}-panel`);
+                    if (panel) panel.classList.add('active');
+                    // Se for a aba de alertas, carregar alertas
+                    if (tabId === 'alertas') {
+                        carregarAlertasRecentes();
+                    }
+                });
+            });
+            // Atualizar tempos a cada minuto
+            setInterval(updateAlertTimes, 60000);
+            // Outras inicializações que estavam em outros window.onload
+            // Exemplo: listeners de agentes online, etc.
+            const agentsCountEl = document.getElementById('agentsCount');
+            if (agentsCountEl) {
+                agentsCountEl.style.cursor = 'pointer';
+                agentsCountEl.title = 'Clique para ver a lista de agentes online';
+                agentsCountEl.onclick = showAgentsOnlineList;
+            }
+            // Garantir que o chat esteja fechado ao carregar a página
+            const chatSidebar = document.getElementById('chatSidebar');
+            if (chatSidebar) chatSidebar.style.right = '-400px';
+        };
+        
+        // Função para mostrar a localização do usuário
+        function showMyLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userPos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        // Verificar se está em Angola
+                        if (isInAngola(userPos)) {
+                            updateUserLocation(userPos);
+                            
+                            // Adicionar info window
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: `
+                                    <div style="padding: 10px; text-align: center;">
+                                        <strong>Você está aqui</strong>
+                                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">
+                                            ${userPos.lat.toFixed(6)}, ${userPos.lng.toFixed(6)}
+                                        </p>
+                                    </div>
+                                `
+                            });
+                            
+                            infoWindow.open(map, userMarker);
+                            
+                            // Fechar após 5 segundos
+                            setTimeout(() => {
+                                infoWindow.close();
+                            }, 5000);
+                        } else {
+                            console.log("📍 Localização fora de Angola detectada, usando localização padrão em Luanda");
+                            alert("Sua localização atual parece estar fora de Angola. Usando localização padrão em Luanda.");
+                            setPresetLocation('Ingombota');
+                        }
+                    },
+                    (error) => {
+                        console.warn('Erro ao obter localização:', error);
+                        
+                        // Mostrar opções de localização manual
+                        document.getElementById('manualLocationPanel').classList.add('active');
+                        
+                        // Tentar usar última posição conhecida
+                        const lastPos = localStorage.getItem('userLastPosition');
+                        if (lastPos) {
+                            const userPos = JSON.parse(lastPos);
+                            updateUserLocation(userPos);
+                        }
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                alert("Seu navegador não suporta geolocalização.");
+                document.getElementById('manualLocationPanel').classList.add('active');
+            }
+        }
+        
+        // Destacar unidades próximas
+        function highlightNearbyUnits(userPos) {
+            // Encontrar unidades a menos de 3km
+            const nearbyUnits = policeUnits.filter(unit => {
+                const distance = calculateDistance(
+                    userPos, unit
+                );
+                return distance < 3; // 3km
+            });
+            
+            // Destacar no mapa
+            unitMarkers.forEach(({ marker, unit }) => {
+                const isNearby = nearbyUnits.some(u => u.id === unit.id);
+                
+                if (isNearby) {
+                    // Criar círculo de destaque para unidades próximas
+                    const circle = new google.maps.Circle({
+                        strokeColor: "#667eea",
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: "#667eea",
+                        fillOpacity: 0.1,
+                        map: map,
+                        center: { lat: unit.lat, lng: unit.lng },
+                        radius: 300, // 300 metros
+                        zIndex: 1
+                    });
+                    
+                    // Animar brevemente o marcador
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+                    setTimeout(() => {
+                        marker.setAnimation(null);
+                    }, 2000);
+                }
+            });
+            
+            // Destacar na sidebar
+            document.querySelectorAll('#unitsList .unit-card').forEach(card => {
+                card.classList.remove('nearby');
+            });
+            
+            nearbyUnits.forEach(unit => {
+                const unitCard = document.querySelector(`#unitsList .unit-card:nth-child(${unit.id})`);
+                if (unitCard) {
+                    unitCard.classList.add('nearby');
+                    unitCard.style.borderLeftColor = '#4caf50';
+                    unitCard.style.borderLeftWidth = '6px';
+                }
+            });
+            
+            // Notificar no console
+            console.log(`🏢 ${nearbyUnits.length} unidades próximas encontradas`);
+            
+            return nearbyUnits;
+        }
+        
+        // Toggle tipo do mapa
+        function toggleMapLayer() {
+            if (map.getMapTypeId() === 'roadmap') {
+                map.setMapTypeId('satellite');
+            } else {
+                map.setMapTypeId('roadmap');
+            }
+        }
+        
+        // Toggle pontos de interesse
+        let poiVisible = true;
+        function togglePointsOfInterest() {
+            poiVisible = !poiVisible;
+            
+            // Alternar classe do botão
+            document.getElementById('poiButton').classList.toggle('active');
+            
+            if (poiVisible) {
+                // Mostrar pontos de interesse (padrão do Google Maps)
+                map.setOptions({
+                    styles: []
+                });
+            } else {
+                // Esconder pontos de interesse
+                map.setOptions({
+                    styles: [
+                        {
+                            featureType: "poi",
+                            elementType: "labels",
+                            stylers: [{ visibility: "off" }]
+                        }
+                    ]
+                });
+            }
+        }
+        
+        // Mostrar/esconder painel de localização manual
+        function toggleManualLocation() {
+            const panel = document.getElementById('manualLocationPanel');
+            panel.classList.toggle('active');
+        }
+        
+        // Definir localização manualmente
+        function setManualLocation() {
+            const lat = parseFloat(document.getElementById('manualLat').value);
+            const lng = parseFloat(document.getElementById('manualLng').value);
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                alert('Por favor, insira coordenadas válidas');
+                return;
+            }
+            
+            const userPos = { lat, lng };
+            
+            // Atualizar marcador e mapa
+            updateUserLocation(userPos);
+            
+            // Fechar painel
+            document.getElementById('manualLocationPanel').classList.remove('active');
+        }
+        
+        // Definir localização por preset
+        function setPresetLocation(area) {
+            let lat, lng;
+            
+            switch (area) {
+                case 'Ingombota':
+                    lat = -8.8147;
+                    lng = 13.2302;
+                    break;
+                case 'Maianga':
+                    lat = -8.8254;
+                    lng = 13.2408;
+                    break;
+                case 'Talatona':
+                    lat = -8.9146;
+                    lng = 13.1825;
+                    break;
+                case 'Kilamba':
+                    lat = -8.9833;
+                    lng = 13.3333;
+                    break;
+                default:
+                    lat = -8.8159;
+                    lng = 13.2306;
+            }
+            
+            document.getElementById('manualLat').value = lat;
+            document.getElementById('manualLng').value = lng;
+            
+            setManualLocation();
+        }
+        
+        // Atualizar localização do usuário no mapa
+        function updateUserLocation(position) {
+            // Remover marcador anterior se existir
+            if (userMarker) {
+                userMarker.setMap(null);
+            }
+            
+            // Adicionar marcador do usuário
+            userMarker = new google.maps.Marker({
+                position: position,
+                map: map,
+                title: 'Minha localização',
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#4285F4',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 8
+                },
+                animation: google.maps.Animation.DROP,
+                zIndex: 1000
+            });
+            
+            // Centralizar no usuário
+            map.setCenter(position);
+            map.setZoom(15);
+            
+            // Salvar posição
+            localStorage.setItem('userLastPosition', JSON.stringify(position));
+            
+            // Calcular distâncias
+            updateDistances(position);
+            
+            // Destacar unidades próximas
+            highlightNearbyUnits(position);
+            
+            console.log(`📍 Localização atualizada para: ${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}`);
+        }
+        
+        // Verificar se coordenadas estão em Angola
+        function isInAngola(position) {
+            // Coordenadas aproximadas de Angola
+            return position.lat >= -18.0 && position.lat <= 0 &&
+                   position.lng >= 11.5 && position.lng <= 24.0;
+        }
+        
+        // Inicializar busca de locais
+        function initSearchBox() {
+            const input = document.getElementById('searchBox');
+            const searchBox = new google.maps.places.SearchBox(input);
+            
+            // Limitar resultados à área do mapa
+            map.addListener('bounds_changed', function() {
+                searchBox.setBounds(map.getBounds());
+            });
+            
+            // Observar eventos de seleção de local
+            searchBox.addListener('places_changed', function() {
+                const places = searchBox.getPlaces();
+                
+                if (places.length === 0) {
+                    return;
+                }
+                
+                // Limpar marcadores anteriores de busca
+                const currentMarkers = document.querySelectorAll('.search-marker');
+                currentMarkers.forEach(marker => marker.setMap(null));
+                
+                // Obter o local selecionado
+                const place = places[0];
+                
+                if (!place.geometry || !place.geometry.location) {
+                    console.log("Local sem geometria");
+                    return;
+                }
+                
+                // Criar marcador para o local
+                const marker = new google.maps.Marker({
+                    map: map,
+                    title: place.name,
+                    position: place.geometry.location,
+                    animation: google.maps.Animation.DROP,
+                    className: 'search-marker'
+                });
+                
+                // Mostrar informações do local
+                marker.addListener('click', function() {
+                    showPlaceInfo(place, place.geometry.location);
+                });
+                
+                // Centralizar mapa no local
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);
+                }
+                
+                // Mostrar informações do local automaticamente
+                showPlaceInfo(place, place.geometry.location);
+            });
+        }
+        
+        // Mostrar informações do local
+        function showPlaceInfo(place, location) {
+            const placeInfo = document.getElementById('placeInfo');
+            const placeName = document.getElementById('placeName');
+            const placeAddress = document.getElementById('placeAddress');
+            const placeType = document.getElementById('placeType');
+            
+            // Definir informações do local
+            placeName.textContent = place.name || 'Local';
+            placeAddress.textContent = place.formatted_address || 'Endereço não disponível';
+            
+            // Obter tipo do local
+            let type = 'Local';
+            if (place.types && place.types.length > 0) {
+                // Converter tipo para português
+                const typeMap = {
+                    'school': 'Escola',
+                    'hospital': 'Hospital',
+                    'police': 'Polícia',
+                    'restaurant': 'Restaurante',
+                    'store': 'Loja',
+                    'shopping_mall': 'Shopping',
+                    'bank': 'Banco',
+                    'pharmacy': 'Farmácia',
+                    'gas_station': 'Posto de Combustível',
+                    'lodging': 'Hotel',
+                    'bar': 'Bar',
+                    'cafe': 'Café',
+                    'church': 'Igreja',
+                    'university': 'Universidade',
+                    'park': 'Parque',
+                    'point_of_interest': 'Ponto de Interesse'
+                };
+                
+                // Procurar por um tipo conhecido
+                for (const t of place.types) {
+                    if (typeMap[t]) {
+                        type = typeMap[t];
+                        break;
+                    }
+                }
+            }
+            
+            placeType.textContent = `Tipo: ${type}`;
+            
+            // Mostrar painel
+            placeInfo.classList.add('active');
+            
+            // Armazenar localização para uso posterior
+            placeInfo.dataset.lat = location.lat();
+            placeInfo.dataset.lng = location.lng();
+        }
+        
+        // Fechar informações do local
+        function closePlaceInfo() {
+            document.getElementById('placeInfo').classList.remove('active');
+        }
+        
+        // Obter direções para o local
+        function getDirections() {
+            const placeInfo = document.getElementById('placeInfo');
+            const lat = placeInfo.dataset.lat;
+            const lng = placeInfo.dataset.lng;
+            
+            if (!lat || !lng) return;
+            
+            // Abrir Google Maps com direções
+            if (userMarker) {
+                const userPos = userMarker.getPosition();
+                window.open(`https://www.google.com/maps/dir/${userPos.lat()},${userPos.lng()}/${lat},${lng}`, '_blank');
+            } else {
+                window.open(`https://www.google.com/maps/dir//${lat},${lng}`, '_blank');
+            }
+        }
+        
+        // Reportar emergência no local
+        async function reportEmergency() {
+            const placeInfo = document.getElementById('placeInfo');
+            const lat = parseFloat(placeInfo.dataset.lat);
+            const lng = parseFloat(placeInfo.dataset.lng);
+            const name = document.getElementById('placeName').textContent;
+            const address = document.getElementById('placeAddress').textContent;
+            
+            if (!lat || !lng) return;
+            
+            if (confirm(`Confirma o envio de alerta de emergência para: ${name}?`)) {
+                try {
+                    // Calcular unidades próximas (dentro de 3km)
+                    const nearbyUnits = policeUnits.filter(unit => {
+                        const distance = calculateDistance(
+                            { lat: lat, lng: lng }, unit
+                        );
+                        return distance <= 3; // 3km
+                    }).sort((a, b) => {
+                        const distA = calculateDistance(
+                            { lat: lat, lng: lng }, a
+                        );
+                        const distB = calculateDistance(
+                            { lat: lat, lng: lng }, b
+                        );
+                        return distA - distB;
+                    });
+
+                    if (nearbyUnits.length === 0) {
+                        alert('⚠️ Não há unidades policiais próximas (dentro de 3km). O alerta será enviado para todas as unidades.');
+                        // Usar todas as unidades se não houver próximas
+                        nearbyUnits.push(...policeUnits);
+                    }
+
+                    // Preparar dados do alerta
+                    const alertData = {
+                        tipo: 'emergencia',
+                        descricao: `Emergência em ${name} - ${address}`,
+                        latitude: lat,
+                        longitude: lng,
+                        unidades_notificadas: nearbyUnits.map(unit => unit.id),
+                        local_nome: name,
+                        local_endereco: address
+                    };
+
+                    // Enviar alerta para o servidor
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('http://localhost:3000/api/alerts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(alertData)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('🚨 Alerta enviado:', data);
+
+                        // Adicionar marcador de alerta no mapa
+                        const alertMarker = new google.maps.Marker({
+                            position: { lat: lat, lng: lng },
+                            map: map,
+                            title: 'EMERGÊNCIA',
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                fillColor: '#ff6b6b',
+                                fillOpacity: 1,
+                                strokeColor: '#ffffff',
+                                strokeWeight: 2,
+                                scale: 10
+                            },
+                            animation: google.maps.Animation.BOUNCE
+                        });
+
+                        alertMarkers.push(alertMarker);
+
+                        // Destacar unidades notificadas
+                        nearbyUnits.forEach(unit => {
+                            const unitMarker = unitMarkers.find(m => m.unit.id === unit.id);
+                            if (unitMarker) {
+                                unitMarker.marker.setAnimation(google.maps.Animation.BOUNCE);
+                                setTimeout(() => {
+                                    unitMarker.marker.setAnimation(null);
+                                }, 2000);
+                            }
+                        });
+
+                        // Mostrar mensagem de sucesso com detalhes
+                        const unitsList = nearbyUnits.map(unit => 
+                            `- ${unit.name} (${calculateDistance(
+                                { lat: lat, lng: lng }, unit
+                            ).toFixed(1)}km)`
+                        ).join('\n');
+
+                        alert(`✅ Alerta enviado com sucesso!\n\nUnidades notificadas:\n${unitsList}`);
+
+                        // Fechar painel
+                        closePlaceInfo();
+                    } else {
+                        throw new Error('Erro ao enviar alerta');
+                    }
+                } catch (error) {
+                    console.error('Erro ao enviar alerta:', error);
+                    alert('❌ Erro ao enviar alerta. Por favor, tente novamente.');
+                }
+            }
+        }
+
+        // Função para mostrar rota até o alerta
+        function showRouteToAlert(alertPosition) {
+            if (!currentPosition) {
+                alert('Não foi possível obter sua localização atual');
+                return;
+            }
+
+            const request = {
+                origin: currentPosition,
+                destination: alertPosition,
+                travelMode: 'DRIVING'
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    
+                    // Calcular e mostrar distância
+                    const distance = calculateDistance(currentPosition, alertPosition);
+                    const route = result.routes[0];
+                    const duration = route.legs[0].duration.text;
+                    
+                    // Adicionar informações ao marcador do alerta
+                    const alertMarker = markers.find(m => m.position.equals(alertPosition));
+                    if (alertMarker) {
+                        alertMarker.setTitle(`Distância: ${distance.toFixed(1)} km\nTempo estimado: ${duration}`);
+                    }
+                } else {
+                    console.error('Erro ao calcular rota:', status);
+                }
+            });
+        }
+
+        // Modificar a função que adiciona alerta no mapa
+        function addAlertToMap(alerta) {
+            const position = { lat: parseFloat(alerta.latitude), lng: parseFloat(alerta.longitude) };
+            
+            // Remover marcadores anteriores
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+            
+            // Adicionar novo marcador de alerta
+            const marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                icon: {
+                    url: '/alerta.png', // Ícone customizado de alerta
+                    scaledSize: new google.maps.Size(28, 28),
+                    anchor: new google.maps.Point(14, 28)
+                },
+                title: `Alerta: ${alerta.tipo}\nUsuário: ${alerta.user_nome}`
+            });
+            
+            markers.push(marker);
+            
+            // Centralizar mapa no alerta
+            map.setCenter(position);
+            
+            // Mostrar rota até o alerta
+            showRouteToAlert(position);
+            
+            // Adicionar ao histórico de alertas
+            addToAlertHistory(alerta);
+            
+            // Iniciar rastreamento se for um alerta de sequestro
+            if (alerta.tipo === 'sequestro') {
+                startAlertTracking(alerta);
+            }
+        }
+
+        // Função para iniciar rastreamento do alerta
+        function startAlertTracking(alerta) {
+            if (alertTracking.active) {
+                stopAlertTracking();
+            }
+            
+            alertTracking.active = true;
+            alertTracking.alertId = alerta.id;
+            alertTracking.lastPosition = {
+                lat: parseFloat(alerta.latitude),
+                lng: parseFloat(alerta.longitude)
+            };
+            
+            // Criar marcador especial para rastreamento
+            alertTracking.marker = new google.maps.Marker({
+                position: alertTracking.lastPosition,
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: "#FF0000",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 2,
+                },
+                title: `Rastreando: ${alerta.user_nome}`
+            });
+            
+            // Criar linha do caminho
+            alertTracking.path = new google.maps.Polyline({
+                path: [alertTracking.lastPosition],
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2
+            });
+            alertTracking.path.setMap(map);
+            
+            // Adicionar botão de rastreamento ao card do alerta
+            const alertCard = document.querySelector(`[data-alert-id="${alerta.id}"]`);
+            if (alertCard) {
+                const trackingBtn = document.createElement('button');
+                trackingBtn.className = 'tracking-btn';
+                trackingBtn.innerHTML = '🛑 Parar Rastreamento';
+                trackingBtn.onclick = () => stopAlertTracking();
+                alertCard.appendChild(trackingBtn);
+            }
+            
+            // Iniciar atualização da posição
+            socket.emit('start-tracking', { alertId: alerta.id });
+            
+            console.log('🔍 Iniciando rastreamento do alerta:', alerta.id);
+        }
+
+        // Função para parar rastreamento
+        function stopAlertTracking() {
+            if (!alertTracking.active) return;
+            
+            alertTracking.active = false;
+            
+            // Remover marcador e linha do caminho
+            if (alertTracking.marker) {
+                alertTracking.marker.setMap(null);
+            }
+            if (alertTracking.path) {
+                alertTracking.path.setMap(null);
+            }
+            
+            // Limpar dados
+            alertTracking.marker = null;
+            alertTracking.path = null;
+            alertTracking.pathCoordinates = [];
+            alertTracking.lastPosition = null;
+            
+            // Parar atualização no servidor
+            socket.emit('stop-tracking', { alertId: alertTracking.alertId });
+            
+            // Remover botão de rastreamento
+            const alertCard = document.querySelector(`[data-alert-id="${alertTracking.alertId}"]`);
+            if (alertCard) {
+                const trackingBtn = alertCard.querySelector('.tracking-btn');
+                if (trackingBtn) {
+                    trackingBtn.remove();
+                }
+            }
+            
+            console.log('🛑 Rastreamento parado');
+        }
+
+        // Função para mostrar informações de rastreamento
+        function showTrackingInfo(data) {
+            const trackingInfo = document.getElementById('trackingInfo');
+            trackingInfo.classList.add('active');
+            
+            // Atualizar velocidade
+            document.getElementById('currentSpeed').textContent = `${data.speed} km/h`;
+            document.getElementById('averageSpeed').textContent = `${data.averageSpeed} km/h`;
+            
+            // Atualizar direção
+            document.getElementById('currentDirection').textContent = data.direction;
+            
+            // Atualizar zonas de perigo
+            const dangerZonesElement = document.getElementById('dangerZones');
+            if (data.nearbyDangerZones && data.nearbyDangerZones.length > 0) {
+                dangerZonesElement.innerHTML = data.nearbyDangerZones.map(zone => 
+                    `<div class="danger-zone">⚠️ ${zone.name} (${zone.distance}km)</div>`
+                ).join('');
+            } else {
+                dangerZonesElement.textContent = 'Nenhuma';
+            }
+            
+            // Atualizar status da rota
+            const routeStatusElement = document.getElementById('routeStatus');
+            if (data.routeDeviation && data.routeDeviation.isDeviating) {
+                routeStatusElement.innerHTML = `<span class="deviation-warning">⚠️ Desvio detectado</span>`;
+            } else {
+                routeStatusElement.textContent = 'Normal';
+            }
+            
+            // Adicionar avisos de velocidade
+            const speed = parseFloat(data.speed);
+            if (speed > 80) {
+                document.getElementById('currentSpeed').classList.add('speed-warning');
+            } else {
+                document.getElementById('currentSpeed').classList.remove('speed-warning');
+            }
+        }
+
+        // Função para fechar informações de rastreamento
+        function closeTrackingInfo() {
+            document.getElementById('trackingInfo').classList.remove('active');
+        }
+
+        // Verificar tipo de usuário e mostrar/esconder elementos
+        const userType = localStorage.getItem('userType');
+        const adminButton = document.getElementById('adminButton');
+        const logsAlertasButton = document.getElementById('logsAlertasButton');
+        
+        if (userType === 'admin') {
+            adminButton.style.display = 'flex';
+            if (logsAlertasButton) logsAlertasButton.style.display = 'flex';
+        }
+      
+    </script>
+    
+    <!-- Socket.io -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Botão para abrir o chat lateral -->
+    <button id="openChatBtn" style="position:fixed;bottom:30px;right:30px;z-index:1001;background:#667eea;color:#fff;border:none;padding:16px 22px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-size:22px;cursor:pointer;">💬</button>
+
+    <!-- Painel lateral do chat -->
+    <div id="chatSidebar" style="position:fixed;top:0;right:0;width:400px;max-width:100vw;height:100vh;background:#fff;box-shadow:-2px 0 8px rgba(0,0,0,0.15);z-index:1002;display:flex;flex-direction:column;transition:right 0.3s;">
+      <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:#fff;padding:28px 20px 20px 20px;display:flex;align-items:center;justify-content:space-between;min-height:64px;">
+        <span style="font-size:18px;font-weight:bold;">Assistente Virtual da PNA</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button id="toggleAudioBtn" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">🔇</button>
+          <button id="closeChatBtn" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;">&times;</button>
+        </div>
+      </div>
+      <div id="chatHistory" style="flex:1;overflow-y:auto;padding:18px 16px 0 16px;"></div>
+      <div style="padding:28px 20px 20px 20px;display:flex;gap:8px;align-items:center;background:#fff;position:sticky;bottom:0;z-index:2;">
+        <button id="contextBtn" style="background:#f0f2f5;color:#333;border:none;padding:5px 8px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;min-width:0;">Usar alerta selecionado</button>
+        <input id="chatInput" type="text" placeholder="Digite sua pergunta..." style="flex:2;padding:12px 16px;border:1px solid #ccc;border-radius:6px;font-size:16px;min-width:0;" />
+        <button id="sendChatBtn" style="background:#667eea;color:#fff;border:none;padding:10px 18px;border-radius:6px;font-size:15px;cursor:pointer;white-space:nowrap;">Enviar</button>
+      </div>
+    </div>
+
+    <script>
+      // Abrir/fechar chat
+      const openChatBtn = document.getElementById('openChatBtn');
+      const closeChatBtn = document.getElementById('closeChatBtn');
+      const chatSidebar = document.getElementById('chatSidebar');
+      openChatBtn.onclick = () => { chatSidebar.style.right = '0'; };
+      closeChatBtn.onclick = () => { chatSidebar.style.right = '-400px'; };
+
+      // Histórico do chat
+      const chatHistory = document.getElementById('chatHistory');
+      let ouvirRespostasAtivo = false;
+      const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+      // Sempre iniciar desligado
+      ouvirRespostasAtivo = false;
+      toggleAudioBtn.textContent = '🔇';
+      toggleAudioBtn.onclick = () => {
+        ouvirRespostasAtivo = !ouvirRespostasAtivo;
+        toggleAudioBtn.textContent = ouvirRespostasAtivo ? '🔊' : '🔇';
+      };
+      function appendMessage(text, from) {
+        const msg = document.createElement('div');
+        msg.style.marginBottom = '12px';
+        msg.style.textAlign = from === 'user' ? 'right' : 'left';
+        msg.innerHTML = `<span style="display:inline-block;max-width:80%;background:${from==='user'?'#e0e7ff':'#f8f9fa'};color:#333;padding:10px 14px;border-radius:8px;">${text.replace(/\n/g,'<br>')}</span>`;
+        chatHistory.appendChild(msg);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        // Se áudio global estiver ativado e for resposta da IA, ler automaticamente
+        if (from === 'ia' && ouvirRespostasAtivo && 'speechSynthesis' in window) {
+          let textoParaLer = msg.innerText.trim();
+          textoParaLer = textoParaLer.replace(/[\*#_,\[\]\{\}\/\\\.,]/g, '');
+          const utterance = new window.SpeechSynthesisUtterance(textoParaLer);
+          utterance.lang = 'pt-BR';
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+
+      // Enviar mensagem
+      const chatInput = document.getElementById('chatInput');
+      const sendChatBtn = document.getElementById('sendChatBtn');
+      let contextoAtual = '';
+      sendChatBtn.onclick = async () => {
+        const mensagem = chatInput.value.trim();
+        if (!mensagem) return;
+        appendMessage(mensagem, 'user');
+        chatInput.value = '';
+        appendMessage('<span style="color:#aaa;">Pensando...</span>', 'ia');
+        // Intercepta perguntas sobre o nome do assistente
+        const msgLower = mensagem.toLowerCase();
+        if (msgLower.includes('seu nome') || msgLower.includes('quem é você') || msgLower.includes('como se chama') || msgLower.includes('qual é o seu nome') || msgLower.includes('quem é o assistente')) {
+          chatHistory.lastChild.remove();
+          appendMessage('Sou o assistente virtual da PNA (Polícia Nacional de Angola). Estou aqui para ajudar você!', 'ia');
+          return;
+        }
+        try {
+          const token = localStorage.getItem('token');
+          const resp = await fetch('/api/alerts/gemini-chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ mensagem, contexto: contextoAtual })
+          });
+          const data = await resp.json();
+          chatHistory.lastChild.remove(); // remove "Pensando..."
+          appendMessage(data.resposta || 'Não foi possível obter resposta da IA.', 'ia');
+        } catch (e) {
+          chatHistory.lastChild.remove();
+          appendMessage('Erro ao consultar IA.', 'ia');
+        }
+      };
+      chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChatBtn.onclick(); });
+
+      // Usar alerta selecionado como contexto
+      const contextBtn = document.getElementById('contextBtn');
+      contextBtn.onclick = async () => {
+        // Buscar o card selecionado
+        const selected = document.querySelector('.alert-card-list.selected, .alert-card-list.active');
+        if (selected) {
+          // Extrair o ID do alerta selecionado
+          const alertId = selected.getAttribute('data-alert-id');
+          if (!alertId) {
+            contextoAtual = '';
+            appendMessage('<span style="color:#ff6b6b;">Nenhum alerta selecionado.</span>', 'ia');
+            return;
+          }
+          // Buscar dados completos do alerta via API
+          try {
+            const token = localStorage.getItem('token');
+            const resp = await fetch(`/api/alerts/${alertId}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            if (!resp.ok) throw new Error('Erro ao buscar detalhes do alerta');
+            const alert = await resp.json();
+            // Montar contexto detalhado (NÃO mostrar no chat)
+            contextoAtual = `Alerta #${alert.id}\nTipo: ${alert.tipo || alert.tipo_ocorrencia || '-'}\nStatus: ${alert.status || '-'}\nDescrição: ${alert.descricao || alert.description || '-'}\nCidadão: ${alert.user_nome || '-'}\nBI: ${alert.user_bi || '-'}\nTelefone: ${alert.user_telefone || '-'}\nContato Familiar: ${alert.contacto_familiar || '-'}\nMunicípio: ${alert.user_municipio || '-'}\nBairro: ${alert.user_bairro || '-'}\nData/Hora: ${alert.created_at ? new Date(alert.created_at).toLocaleString('pt-BR') : '-'}\nAtribuído a: ${alert.policial_atribuido_nome || alert.unidade_atribuida_nome || 'Nenhum policial/unidade'}\nLocalização: ${alert.latitude && alert.longitude ? alert.latitude + ', ' + alert.longitude : '-'}`;
+            appendMessage('<span style="color:#667eea;">Contexto do alerta selecionado adicionado.</span>', 'ia');
+          } catch (err) {
+            contextoAtual = '';
+            appendMessage('<span style="color:#ff6b6b;">Erro ao buscar detalhes do alerta.</span>', 'ia');
+          }
+        } else {
+          contextoAtual = '';
+          appendMessage('<span style="color:#ff6b6b;">Nenhum alerta selecionado.</span>', 'ia');
+        }
+      };
+
+      // Garantir que o chat esteja fechado ao carregar a página
+      window.addEventListener('DOMContentLoaded', () => {
+        chatSidebar.style.right = '-400px';
+      });
+    </script>
+    <script>
+    // Exibir botão Unidades apenas para admin
+    (function() {
+        const tipo = localStorage.getItem('userType');
+        if(tipo === 'admin') {
+            document.getElementById('btnUnidadeAdmin').style.display = '';
+            document.getElementById('adminButton').style.display = '';
+        }
+    })();
+    </script>
+    <script>
+    // Adicionar popup de agentes online
+    function showAgentsOnlineList() {
+        const agentes = window.agentesOnline || [];
+        if (!agentes.length) {
+            alert('Nenhum agente online no momento.');
+            return;
+        }
+        const lista = agentes.map(a => `${a.nome}${a.nip ? ' (NIP: ' + a.nip + ')' : ''}`).join('\n');
+        alert(`Agentes Online:\n\n${lista}`);
+    }
+    // Adicionar listener ao contador de agentes online
+    window.onload = function() {
+        checkAuth();
+        connectSocket();
+        // ...
+        // Adicionar listeners para troca de abas
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                // ...
+            });
+        });
+        // ...
+        // Adicionar clique ao contador de agentes online
+        const agentsCountEl = document.getElementById('agentsCount');
+        if (agentsCountEl) {
+            agentsCountEl.style.cursor = 'pointer';
+            agentsCountEl.title = 'Clique para ver a lista de agentes online';
+            agentsCountEl.onclick = showAgentsOnlineList;
+        }
+        // ...
+        setInterval(updateAlertTimes, 60000);
+        // ...
+    }
+    </script>
+    <!-- Modal de Agentes Online -->
+    <div id="agentsOnlineModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);z-index:2000;align-items:center;justify-content:center;">
+      <div id="agentsOnlineModalContent" style="background:#fff;padding:32px 28px 24px 28px;border-radius:14px;min-width:320px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.18);position:relative;">
+        <button id="closeAgentsOnlineModal" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:#888;cursor:pointer;">&times;</button>
+        <h3 style="margin-bottom:18px;color:#2f4f9f;">Agentes Online</h3>
+        <div id="agentsOnlineList"></div>
+      </div>
+    </div>
+    <script>
+    // Modal sofisticado de agentes online
+    function showAgentsOnlineList() {
+        const agentes = window.agentesOnline || [];
+        const modal = document.getElementById('agentsOnlineModal');
+        const listDiv = document.getElementById('agentsOnlineList');
+        if (!agentes.length) {
+            listDiv.innerHTML = '<div style="color:#888;text-align:center;">Nenhum agente online no momento.</div>';
+        } else {
+            listDiv.innerHTML = `<table style='width:100%;border-collapse:collapse;'>
+                <thead><tr style='background:#f0f2f5;'><th style='text-align:left;padding:6px 8px;'>Nome</th><th style='text-align:left;padding:6px 8px;'>NIP</th><th style='text-align:left;padding:6px 8px;'>Status</th><th style='text-align:left;padding:6px 8px;'>Localização</th></tr></thead>
+                <tbody>
+                ${agentes.map(a => `
+                    <tr>
+                        <td style='padding:6px 8px;'>${a.nome}</td>
+                        <td style='padding:6px 8px;'>${a.nip || '-'}</td>
+                        <td style='padding:6px 8px;'>${a.status || 'online'}</td>
+                        <td style='padding:6px 8px;'>${a.lat && a.lng ? `${Number(a.lat).toFixed(5)}, ${Number(a.lng).toFixed(5)}` : '-'}</td>
+                    </tr>
+                `).join('')}
+                </tbody>
+            </table>`;
+        }
+        modal.style.display = 'flex';
+    }
+    // Fechar modal ao clicar no X ou fora do conteúdo
+    function closeAgentsOnlineModal() {
+        document.getElementById('agentsOnlineModal').style.display = 'none';
+    }
+    document.getElementById('closeAgentsOnlineModal').onclick = closeAgentsOnlineModal;
+    document.getElementById('agentsOnlineModal').onclick = function(e) {
+        if (e.target === this) closeAgentsOnlineModal();
+    };
+    // ... existing code ...
+    // No window.onload, manter o listener do contador:
+    const agentsCountEl = document.getElementById('agentsCount');
+    if (agentsCountEl) {
+        agentsCountEl.style.cursor = 'pointer';
+        agentsCountEl.title = 'Clique para ver a lista de agentes online';
+        agentsCountEl.onclick = showAgentsOnlineList;
+    }
+    // ... existing code ...
+    </script>
+
+ 
+
+    <script>
+    // Função para buscar e exibir alertas
+    async function carregarAlertasRecentes() {
+        const alertasList = document.getElementById('alertasList');
+        alertasList.innerHTML = 'Carregando...';
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:3000/api/alerts?status=all', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const alerts = await response.json();
+                if (alerts.length === 0) {
+                    alertasList.innerHTML = '<div style="text-align:center; color:#888;">Nenhum alerta encontrado.</div>';
+                } else {
+                    const statusVisiveis = ['novo', 'em_progresso', 'a decorrer'];
+                    const alertasVisiveis = alerts.filter(alert => statusVisiveis.includes((alert.status || '').toLowerCase()));
+                    alertasList.innerHTML = alertasVisiveis.length === 0
+                        ? '<div style="text-align:center; color:#888;">Nenhum alerta encontrado.</div>'
+                        : alertasVisiveis.map((alert, idx) => {
+                            let actions = '';
+                            if (["novo", "em_progresso", "a decorrer"].includes((alert.status || '').toLowerCase())) {
+                              actions += `<button class='alert-action-btn' data-action='resolver' data-id='${alert.id}' style='margin-right:6px;background:#4caf50;color:#fff;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;'>Resolver</button>`;
+                              actions += `<button class='alert-action-btn' data-action='a_decorrer' data-id='${alert.id}' style='background:#667eea;color:#fff;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;'>A Decorrer</button>`;
+                            }
+                            let agentes = window.agentesOnline || [];
+                            let selectAgente = `<select class='select-agente' data-alert-id='${alert.id}' style='margin-right:6px;padding:3px 8px;border-radius:4px;'>`;
+                            selectAgente += `<option value=''>Atribuir a agente...</option>`;
+                            agentes.forEach(ag => {
+                              selectAgente += `<option value='${ag.id}'>${ag.nome || ag.nip || ag.id}</option>`;
+                            });
+                            selectAgente += `</select>`;
+                            let btnAtribuir = `<button class='btn-atribuir-agente' data-alert-id='${alert.id}' style='background:#ffb300;color:#fff;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;'>Atribuir</button>`;
+                            return `
+                            <div class="alert-card-list" data-alert-idx="${idx}" data-alert-id="${alert.id}" style="border-left:4px solid ${alert.status==='resolvido'?'#4caf50':alert.status==='expirado'?'#ccc':'#e53e3e'}; background:#f7f7fb; margin-bottom:10px; padding:10px 12px; border-radius:8px; cursor:pointer;">
+                              <strong>#${alert.id}</strong> - ${alert.tipo || 'Alerta'}<br>
+                              <span style="font-size:0.95em; color:#555;">${alert.descricao || ''}</span><br>
+                              <span style="font-size:0.85em; color:#888;">Status: <b>${alert.status}</b></span><br>
+                              <div style='margin-top:6px;'>${actions}</div>
+                              <div style='margin-top:8px;display:flex;align-items:center;'>${selectAgente}${btnAtribuir}</div>
+                            </div>
+                          `;
+                        }).join('');
+                    setTimeout(() => {
+                      document.querySelectorAll('.alert-action-btn').forEach(btn => {
+                        btn.addEventListener('click', async function(e) {
+                          e.stopPropagation();
+                          const action = this.getAttribute('data-action');
+                          const alertId = this.getAttribute('data-id');
+                          let newStatus = '';
+                          if (action === 'resolver') newStatus = 'resolvido';
+                          if (action === 'a_decorrer') newStatus = 'em_progresso';
+                          if (!newStatus) return;
+                          try {
+                            const response = await fetch(`/api/alerts/${alertId}/status`, {
+                              method: 'PATCH',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                              },
+                              body: JSON.stringify({ status: newStatus })
+                            });
+                            if (!response.ok) throw new Error('Falha ao atualizar status');
+                            // Recarregar alertas para atualizar lista/mapa
+                            carregarAlertasRecentes();
+                          } catch (err) {
+                            alert('Erro ao atualizar status do alerta');
+                          }
+                        });
+                      });
+                      document.querySelectorAll('.btn-atribuir-agente').forEach(btn => {
+                        btn.addEventListener('click', async function(e) {
+                          e.stopPropagation();
+                          const alertId = this.getAttribute('data-alert-id');
+                          const select = document.querySelector(`.select-agente[data-alert-id='${alertId}']`);
+                          const policialId = select ? select.value : '';
+                          if (!policialId) {
+                            alert('Selecione um agente para atribuir.');
+                            return;
+                          }
+                          try {
+                            const resp = await fetch(`/api/alerts/${alertId}/assign`, {
+                              method: 'PATCH',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                              },
+                              body: JSON.stringify({ policialId })
+                            });
+                            if (!resp.ok) throw new Error('Falha ao atribuir alerta');
+                            alert('Alerta atribuído com sucesso!');
+                            carregarAlertasRecentes();
+                          } catch (err) {
+                            alert('Erro ao atribuir alerta');
+                          }
+                        });
+                      });
+                      // Adicionar seleção de alerta ao clicar no card
+                      document.querySelectorAll('.alert-card-list').forEach(card => {
+                        card.addEventListener('click', function(e) {
+                          // Evitar conflito com botões internos
+                          if (e.target.closest('button') || e.target.closest('select')) return;
+                          document.querySelectorAll('.alert-card-list.selected').forEach(c => c.classList.remove('selected'));
+                          this.classList.add('selected');
+                        });
+                      });
+                    }, 0);
+                    // Limpar marcadores antigos do mapa antes de adicionar novos
+                    if (typeof alertMarkers !== 'undefined') {
+                      alertMarkers.forEach(obj => (obj.marker ? obj.marker.setMap(null) : obj.setMap(null)));
+                      alertMarkers = [];
+                    }
+                    // Adicionar apenas marcadores dos alertas visíveis
+                    alertasVisiveis.forEach((alert, idx) => {
+                        if (alert.latitude && alert.longitude && typeof map !== 'undefined') {
+                            const alertMarker = new google.maps.Marker({
+                                position: { lat: parseFloat(alert.latitude), lng: parseFloat(alert.longitude) },
+                                map: map,
+                                title: `Alerta: ${alert.tipo}`,
+                                icon: {
+                                    url: '/alerta.png',
+                                    scaledSize: new google.maps.Size(28, 28),
+                                    anchor: new google.maps.Point(14, 28)
+                                },
+                                animation: google.maps.Animation.DROP
+                            });
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: `<div style='padding:10px;min-width:200px;'>
+                                  <b>Alerta #${alert.id}</b><br>
+                                  <span><b>Tipo:</b> ${alert.tipo || '-'}</span><br>
+                                  <span><b>Status:</b> ${alert.status || '-'}</span><br>
+                                  <span><b>Descrição:</b> ${alert.descricao || '-'}</span><br>
+                                  <span><b>Cidadão:</b> ${alert.user_nome || '-'}</span><br>
+                                  <span><b>BI:</b> ${alert.user_bi || '-'}</span><br>
+                                  <span><b>Telefone:</b> ${alert.user_telefone || '-'}</span><br>
+                                  <span><b>Contato Familiar:</b> ${alert.contacto_familiar || '-'}</span><br>
+                                  <span><b>Município:</b> ${alert.user_municipio || '-'}</span><br>
+                                  <span><b>Bairro:</b> ${alert.user_bairro || '-'}</span><br>
+                                  <span><b>Data/Hora:</b> ${alert.created_at ? new Date(alert.created_at).toLocaleString('pt-BR') : '-'}</span><br>
+                                  <span><b>Atribuído a:</b> ${
+                                    alert.policial_atribuido_nome
+                                      ? 'Policial: ' + alert.policial_atribuido_nome
+                                      : (alert.unidade_atribuida_nome
+                                          ? 'Unidade: ' + alert.unidade_atribuida_nome
+                                          : 'Não atribuído')
+                                  }</span>
+                                </div>`
+                            });
+                            // Sempre abrir o InfoWindow ao clicar no marcador
+                            alertMarker.addListener('click', () => {
+                                infoWindow.open(map, alertMarker);
+                            });
+                            alertMarkers.push({ marker: alertMarker, alertId: alert.id, infoWindow });
+                        }
+                    });
+                    // Atualizar contador de alertas ativos
+                    const contador = document.getElementById('alertsCount');
+                    if (contador) contador.textContent = alertasVisiveis.length;
+                    const statsContador = document.getElementById('statsAlertsCount');
+                    if (statsContador) statsContador.textContent = alertasVisiveis.length;
+                }
+            } else {
+                alertasList.innerHTML = '<div style="color:#e53e3e;">Erro ao buscar alertas.</div>';
+            }
+        } catch (e) {
+            alertasList.innerHTML = '<div style="color:#e53e3e;">Erro ao buscar alertas.</div>';
+        }
+    }
+
+    // Troca de abas
+    const tabs = document.querySelectorAll('.tab');
+    const panels = {
+        'unidades': document.getElementById('unidades-panel'),
+        'alertas': document.getElementById('alertas-panel')
+    };
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            tabs.forEach(t => t.classList.remove('active'));
+            Object.values(panels).forEach(p => p.classList.remove('active'));
+            Object.values(panels).forEach(p => p.style.display = 'none');
+            this.classList.add('active');
+            const tabId = this.dataset.tab;
+            panels[tabId].classList.add('active');
+            panels[tabId].style.display = '';
+            if (tabId === 'alertas') carregarAlertasRecentes();
+        });
+    });
+    // Exibir unidades por padrão
+    panels['unidades'].style.display = '';
+    panels['alertas'].style.display = 'none';
+    </script>
+</body>
+</html> 

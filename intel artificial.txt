@@ -1,0 +1,100 @@
+1 Detecção de padrões: Identificar alertas recorrentes em determinadas regiões ou horários.2 Sugestão de resposta: A IA pode sugerir mensagens para contato com vítimas ou orientações para equipes em campo.3 elatórios diários/semanais: A IA pode gerar relatórios automáticos de ocorrências, tendências e estatísticas para a chefia.4 Tradução automática: Permitir que alertas sejam enviados em diferentes línguas nacionais e traduzidos automaticamente para o operador
+
+Perfeito! Suas respostas permitem criar um plano robusto, inovador e alinhado com as necessidades reais do sistema e dos agentes.  
+**Resumo das permissões e desejos:**
+- Podemos enviar imagens de mapas normalmente para o Gemini.
+- O agente pode interagir por voz com o assistente (ex: pedir para repetir, recalcular, etc).
+- O assistente pode descrever o alerta, tipo e detalhes em voz alta, inclusive para agentes que estejam distraídos, mas online.
+
+---
+
+## Plano de Ação — Navegação Inteligente por Voz com Gemini Multimodal
+
+### 1. **Melhoria do rastreamento de localização**
+- Otimizar a frequência e precisão do envio de localização do agente e da vítima.
+- Garantir que o backend armazene e disponibilize o histórico de posições para análise e reprocessamento de rotas.
+
+### 2. **Geração e envio de rotas detalhadas**
+- Utilizar a Google Directions API para obter rotas “turn-by-turn” (passo a passo) do agente até a vítima.
+- No app do agente, gerar tanto:
+  - Dados estruturados da rota (coordenadas, instruções em texto/JSON).
+  - Imagem/print do mapa com a rota traçada (para enviar ao Gemini).
+
+### 3. **Expansão do backend para multimodalidade**
+- Adicionar endpoint para receber imagens de mapas/rotas.
+- Adaptar o endpoint do Gemini para aceitar e processar imagens junto com o contexto textual.
+- Centralizar o uso da API Key do Gemini para todos os módulos.
+
+### 4. **Integração com Gemini 1.5 Flash**
+- Enviar para o Gemini:
+  - Imagem do mapa/rota.
+  - Dados do alerta (tipo, descrição, localização, status).
+  - Contexto do agente (posição atual, status, solicitações por voz).
+- O Gemini irá:
+  - Gerar instruções de navegação personalizadas, institucionais e dinâmicas.
+  - Descrever o alerta, tipo e detalhes sempre que solicitado ou em intervalos definidos.
+  - Detectar desvios, zonas sem saída, bloqueios e sugerir rotas alternativas.
+
+### 5. **Implementação de TTS contínuo no app do agente**
+- Integrar biblioteca TTS (ex: `react-native-tts`) para ler todas as instruções e descrições do alerta em voz alta.
+- Permitir que o agente interaja por voz (ex: “repetir”, “próxima instrução”, “detalhes do alerta”).
+- Garantir que o assistente avise automaticamente sobre desvios, zonas de risco e mudanças no status do alerta.
+
+### 6. **Experiência do agente**
+- O agente pode:
+  - Ouvir instruções contínuas de navegação.
+  - Pedir, por voz, para repetir instruções ou ouvir detalhes do alerta.
+  - Ser alertado automaticamente sobre mudanças importantes (ex: vítima mudou de lugar, alerta atualizado, etc).
+- O assistente sempre fala de forma institucional, clara e objetiva, reforçando o tipo e a descrição do alerta.
+
+### 7. **Segurança, privacidade e escalabilidade**
+- Garantir que imagens enviadas não contenham dados sensíveis além do necessário.
+- Centralizar logs e monitoramento de uso do Gemini para controle e auditoria.
+- Estruturar o código para fácil manutenção e evolução futura (separar módulos de TTS, Gemini, rotas, etc).
+
+---
+
+## Próximos Passos
+
+1. **Implementar endpoint backend para upload de imagens e integração multimodal com Gemini.**
+2. **Integrar TTS contínuo no app do agente, com comandos de voz básicos.**
+3. **Ajustar fluxo de geração de rotas e envio de contexto multimodal para o Gemini.**
+4. **Testar e validar a experiência do agente, ajustando para máxima clareza e agilidade.**
+
+---
+
+**Confirma este plano?**  
+Se sim, iniciarei a implementação da Fase 1 (backend multimodal + TTS básico no app).  
+Após cada fase, trago um resumo do que foi feito, próximos passos e o que falta para concluir o plano.  
+Se quiser ajustar algo, só avisar!
+
+
+
+
+Perfeito, entendido!  
+A partir de agora, todas as próximas implementações (upload/captura de imagem do mapa, envio para o backend, chamada ao Gemini multimodal, integração TTS e comandos de voz) serão feitas dentro do diretório `CriminalAlertApp`, focando exclusivamente no **app mobile dos policiais**.
+
+### Próximos passos (Fase 2 – CriminalAlertApp):
+
+1. **Adicionar funcionalidade no app mobile para:**
+   - Capturar ou gerar imagem do mapa/rota atual.
+   - Fazer upload da imagem para o endpoint `/api/alerts/upload-map-image` e receber a URL.
+   - Enviar a URL da imagem junto com o contexto e mensagem para o endpoint `/api/alerts/gemini-chat`.
+
+2. **Integrar TTS (Text-to-Speech) contínuo:**
+   - Instalar e configurar biblioteca TTS (ex: `react-native-tts`).
+   - Ler em voz alta as instruções e descrições do alerta recebidas do Gemini.
+
+3. **Permitir comandos de voz básicos:**
+   - “Repetir instrução”, “Próxima etapa”, “Detalhes do alerta”, etc.
+
+4. **Ajustar interface e experiência do agente:**
+   - Garantir que o fluxo seja fluido, seguro e institucional.
+
+---
+
+Vou iniciar pela integração do TTS no app mobile dos policiais, pois isso é base para a experiência por voz.  
+Depois, sigo para a captura/upload de imagem do mapa e integração com o Gemini multimodal.
+
+**Confirma essa ordem?**  
+Se sim, começo pela instalação e configuração do TTS no `CriminalAlertApp`. Se quiser priorizar a captura/upload de imagem antes, só avisar!

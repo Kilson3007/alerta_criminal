@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 Sistema de Alerta Criminal - Registro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card-container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .card-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .header-image {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #2f4f9f;
+        }
+
+        h1 {
+            color: #2f4f9f;
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #fcfcfc;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #2f4f9f;
+            box-shadow: 0 0 0 3px rgba(47, 79, 159, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #2f4f9f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: #1a3a7f;
+            transform: translateY(-2px);
+        }
+
+        .btn-icon {
+            margin-right: 8px;
+        }
+
+        .login-link {
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .login-link a {
+            color: #2f4f9f;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #d9534f;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <img src="/Policia.jpg" alt="Logo da Polícia" class="header-image">
+        <h1>Criar Nova Conta</h1>
+        <p>Preencha os dados abaixo para se registrar como Agente/Policial</p>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="nomeCompleto">Nome Completo</label>
+                <input type="text" id="nomeCompleto" placeholder="Nome do Agente" required>
+            </div>
+            <div class="form-group">
+                <label for="telefone">Telefone</label>
+                <input type="text" id="telefone" placeholder="244912345678" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email (Opcional)</label>
+                <input type="email" id="email" placeholder="agente@policia.ao">
+            </div>
+            <div class="form-group">
+                <label for="bilheteIdentidade">Bilhete de Identidade (Opcional)</label>
+                <input type="text" id="bilheteIdentidade" placeholder="0000000AA000">
+            </div>
+            <div class="form-group">
+                <label for="nip">NIP (Número de Identificação Pessoal)</label>
+                <input type="text" id="nip" placeholder="20001231123451" required>
+            </div>
+            <div class="form-group">
+                <label for="tipoUsuario">Tipo de Usuário</label>
+                <select id="tipoUsuario" required>
+                    <option value="policia">Polícia</option>
+                    <option value="unidade">Unidade</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" placeholder="********" required>
+            </div>
+            <button type="submit" class="btn">
+                <span class="btn-icon">✅</span> Registrar
+            </button>
+        </form>
+
+        <div class="login-link">
+            Já tem uma conta? <a href="/login.html">Fazer Login</a>
+        </div>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome_completo = document.getElementById('nomeCompleto').value;
+            const telefone = document.getElementById('telefone').value;
+            const email = document.getElementById('email').value;
+            const bilhete_identidade = document.getElementById('bilheteIdentidade').value;
+            const nip = document.getElementById('nip').value;
+            const tipo_usuario = document.getElementById('tipoUsuario').value;
+            const senha = document.getElementById('senha').value;
+            const errorMessageDiv = document.getElementById('errorMessage');
+            errorMessageDiv.textContent = ''; // Limpar mensagens de erro anteriores
+
+            if (!nome_completo || !telefone || !nip || !tipo_usuario || !senha) {
+                errorMessageDiv.textContent = 'Por favor, preencha todos os campos obrigatórios.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome_completo,
+                        telefone,
+                        email,
+                        bilhete_identidade,
+                        nip,
+                        tipo_usuario,
+                        senha
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Registro realizado com sucesso! Faça login.');
+                    window.location.href = '/login.html'; // Redirecionar para a tela de login
+                } else {
+                    errorMessageDiv.textContent = result.error || 'Erro no registro. Tente novamente.';
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                errorMessageDiv.textContent = 'Erro ao conectar ao servidor. Tente novamente mais tarde.';
+            }
+        });
+    </script>
+</body>
+</html> 

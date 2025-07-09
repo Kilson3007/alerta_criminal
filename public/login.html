@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 Sistema de Alerta Criminal - Login</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card-container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .card-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .header-image {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #2f4f9f;
+        }
+
+        h1 {
+            color: #2f4f9f;
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #fcfcfc;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #2f4f9f;
+            box-shadow: 0 0 0 3px rgba(47, 79, 159, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #2f4f9f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: #1a3a7f;
+            transform: translateY(-2px);
+        }
+
+        .btn-icon {
+            margin-right: 8px;
+        }
+
+        .register-link {
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .register-link a {
+            color: #2f4f9f;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #d9534f;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <img src="/Policia.jpg" alt="Logo da Polícia" class="header-image">
+        <h1>Sistema de Alerta Criminal</h1>
+        <p>Polícia Nacional de Angola</p>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="identifier">Telefone ou NIP</label>
+                <input type="text" id="identifier" placeholder="Telefone ou NIP" required>
+            </div>
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" placeholder="********" required>
+            </div>
+            <button type="submit" class="btn">
+                <span class="btn-icon">➡️</span> Entrar
+            </button>
+        </form>
+
+        <div class="register-link">
+            Não tem uma conta? <a href="/register.html">Cadastre-se</a>
+        </div>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('identifier').value;
+            const senha = document.getElementById('senha').value;
+            const errorMessageDiv = document.getElementById('errorMessage');
+            errorMessageDiv.textContent = ''; // Limpar mensagens de erro anteriores
+
+            if (!identifier || !senha) {
+                errorMessageDiv.textContent = 'Por favor, preencha Telefone/NIP e Senha.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, senha })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('userData', JSON.stringify(result.user));
+                    localStorage.setItem('userType', result.user.tipo_usuario);
+                    window.location.href = '/dashboard.html'; // Redirecionar para o dashboard
+                } else {
+                    errorMessageDiv.textContent = result.error || 'Credenciais inválidas. Tente novamente.';
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                errorMessageDiv.textContent = 'Erro ao conectar ao servidor. Tente novamente mais tarde.';
+            }
+        });
+
+        // Redirecionar se já estiver logado
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedToken = localStorage.getItem('token');
+            if (storedToken) {
+                window.location.href = '/dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html> 

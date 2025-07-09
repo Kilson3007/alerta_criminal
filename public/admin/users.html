@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Usuários - Sistema de Alerta Criminal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .navbar-brand img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .modal-header {
+            background-color: #f8f9fa;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard.html">
+                <img src="/Policia.jpg" alt="Logo">
+                Sistema de Alerta Criminal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard.html">Dashboard</a>
+                    </li>
+                    <!-- Botão Unidades (apenas admin) -->
+                    <li class="nav-item" id="unidadesMenuItem" style="display:none;">
+                        <a class="nav-link" href="/admin/unidade.html">Unidades</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/users.html">Gestão de Usuários</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <button class="btn btn-outline-light" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Adicione este div onde está o menu superior -->
+    <div id="admin-menu"></div>
+
+    <!-- Conteúdo Principal -->
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Gestão de Usuários</h2>
+            <button class="btn btn-primary" onclick="openNewUserModal()">
+                <i class="bi bi-person-plus"></i> Novo Usuário
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar por NIP ou BI...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="typeFilter">
+                            <option value="">Todos os tipos</option>
+                            <option value="admin">Administrador</option>
+                            <option value="policia">Polícia</option>
+                            <option value="cidadao">Cidadão</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">Todos os status</option>
+                            <option value="true">Ativos</option>
+                            <option value="false">Inativos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-secondary w-100" onclick="applyFilters()">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Usuários -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>NIP</th>
+                        <th>BI</th>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Tipo</th>
+                        <th>Status</th>
+                        <th>Última Atualização</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- Dados serão inseridos via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        <nav aria-label="Navegação de páginas" class="mt-4">
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- Paginação será inserida via JavaScript -->
+            </ul>
+        </nav>
+
+        <!-- Modal de Logs de Auditoria -->
+        <div class="modal fade" id="auditLogsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Logs de Auditoria</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Ação</th>
+                                        <th>Usuário</th>
+                                        <th>IP</th>
+                                        <th>Detalhes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="auditLogsBody">
+                                    <!-- Logs serão inseridos via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Novo Usuário -->
+    <div class="modal fade" id="newUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Novo Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newUserForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label required">NIP</label>
+                                <input type="text" class="form-control" name="nip" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">Bilhete de Identidade</label>
+                                <input type="text" class="form-control" name="bilhete_identidade" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label required">Nome Completo</label>
+                                <input type="text" class="form-control" name="nome_completo" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Telefone</label>
+                                <input type="tel" class="form-control" name="telefone">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">Tipo de Usuário</label>
+                                <select class="form-select" name="tipo_usuario" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="admin">Administrador</option>
+                                    <option value="policia">Polícia</option>
+                                    <option value="cidadao">Cidadão</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">Senha</label>
+                                <input type="password" class="form-control" name="senha" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Bairro</label>
+                                <input type="text" class="form-control" name="bairro">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Rua</label>
+                                <input type="text" class="form-control" name="rua">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Município</label>
+                                <input type="text" class="form-control" name="municipio">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Número da Casa</label>
+                                <input type="text" class="form-control" name="numero_casa">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="createUser()">Criar Usuário</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Usuário -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" name="id">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">NIP</label>
+                                <input type="text" class="form-control" name="nip" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Bilhete de Identidade</label>
+                                <input type="text" class="form-control" name="bilhete_identidade">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Nome Completo</label>
+                                <input type="text" class="form-control" name="nome_completo">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Telefone</label>
+                                <input type="tel" class="form-control" name="telefone">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tipo de Usuário</label>
+                                <select class="form-select" name="tipo_usuario">
+                                    <option value="admin">Administrador</option>
+                                    <option value="policia">Polícia</option>
+                                    <option value="cidadao">Cidadão</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="ativo">
+                                    <option value="true">Ativo</option>
+                                    <option value="false">Inativo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Bairro</label>
+                                <input type="text" class="form-control" name="bairro">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Rua</label>
+                                <input type="text" class="form-control" name="rua">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Município</label>
+                                <input type="text" class="form-control" name="municipio">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Número da Casa</label>
+                                <input type="text" class="form-control" name="numero_casa">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="updateUser()">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Redefinir Senha -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Redefinir Senha</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="resetPasswordForm">
+                        <input type="hidden" name="id">
+                        <div class="mb-3">
+                            <label class="form-label required">Nova Senha</label>
+                            <input type="password" class="form-control" name="nova_senha" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="resetPassword()">Redefinir Senha</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalhes do Usuário -->
+    <div class="modal fade" id="userDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalhes do Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>NIP:</strong> <span id="detailNip"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>BI:</strong> <span id="detailBi"></span>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <strong>Nome Completo:</strong> <span id="detailNomeCompleto"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Email:</strong> <span id="detailEmail"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Telefone:</strong> <span id="detailTelefone"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Tipo de Usuário:</strong> <span id="detailTipoUsuario"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Status:</strong> <span id="detailStatus"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Data de Criação:</strong> <span id="detailCriadoEm"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Última Atualização:</strong> <span id="detailAtualizadoEm"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Bairro:</strong> <span id="detailBairro"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Rua:</strong> <span id="detailRua"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Município:</strong> <span id="detailMunicipio"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Número da Casa:</strong> <span id="detailNumeroCasa"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variáveis globais
+        let users = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let itemsPerPage = 10;
+        const token = localStorage.getItem('token');
+        const userType = localStorage.getItem('userType');
+
+        // Verificar se é admin
+        if (userType !== 'admin') {
+            window.location.href = '/dashboard.html';
+        }
+
+        // Funções de utilidade
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString('pt-BR');
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        // Funções de API
+        async function fetchUsers(page = 1) {
+            try {
+                const searchTerm = document.getElementById('searchInput').value;
+                const typeFilter = document.getElementById('typeFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+
+                const queryParams = new URLSearchParams({
+                    page,
+                    limit: itemsPerPage,
+                    search: searchTerm,
+                    tipo: typeFilter,
+                    status: statusFilter
+                });
+
+                const response = await fetch(`/api/users/admin/users?${queryParams}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar usuários');
+                }
+
+                const data = await response.json();
+                users = data.usuarios;
+                currentPage = data.paginacao.pagina;
+                totalPages = data.paginacao.total_paginas;
+                renderUsers();
+                renderPagination();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function createUser() {
+            const form = document.getElementById('newUserForm');
+            const formData = new FormData(form);
+            const userData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/api/users/admin/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao criar usuário');
+                }
+
+                const data = await response.json();
+                showAlert('Usuário criado com sucesso');
+                bootstrap.Modal.getInstance(document.getElementById('newUserModal')).hide();
+                form.reset();
+                fetchUsers();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function updateUser() {
+            const form = document.getElementById('editUserForm');
+            const formData = new FormData(form);
+            const userData = Object.fromEntries(formData.entries());
+            const userId = userData.id;
+            delete userData.id;
+
+            try {
+                const response = await fetch(`/api/users/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao atualizar usuário');
+                }
+
+                const data = await response.json();
+                showAlert('Usuário atualizado com sucesso');
+                bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+                fetchUsers();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function toggleUserStatus(userId, currentStatus) {
+            try {
+                const response = await fetch(`/api/users/admin/users/${userId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ ativo: !currentStatus })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao alterar status do usuário');
+                }
+
+                const data = await response.json();
+                showAlert(`Usuário ${data.usuario.ativo ? 'ativado' : 'desativado'} com sucesso`);
+                fetchUsers();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function resetPassword() {
+            const form = document.getElementById('resetPasswordForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            const userId = data.id;
+            delete data.id;
+
+            try {
+                const response = await fetch(`/api/users/admin/users/${userId}/reset-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao redefinir senha');
+                }
+
+                const responseData = await response.json();
+                showAlert('Senha redefinida com sucesso');
+                bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
+                form.reset();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        // Funções de UI
+        function renderUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${user.nip}</td>
+                    <td>${user.bilhete_identidade || '-'}</td>
+                    <td>${user.nome_completo}</td>
+                    <td>${user.email || '-'}</td>
+                    <td>${user.tipo_usuario}</td>
+                    <td>
+                        <span class="badge ${user.ativo ? 'bg-success' : 'bg-danger'}">
+                            ${user.ativo ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td>${formatDate(user.atualizado_em)}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-primary" onclick="openEditModal(${user.id})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="openResetPasswordModal(${user.id})">
+                            <i class="bi bi-key"></i>
+                        </button>
+                        <button class="btn btn-sm ${user.ativo ? 'btn-danger' : 'btn-success'}"
+                                onclick="toggleUserStatus(${user.id}, ${user.ativo})">
+                            <i class="bi bi-${user.ativo ? 'person-x' : 'person-check'}"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="showAuditLogs(${user.id})">
+                            <i class="bi bi-clock-history"></i>
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="openUserDetailsModal(${user.id})">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            // Botão Anterior
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <button class="page-link" onclick="fetchUsers(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    Anterior
+                </button>
+            `;
+            pagination.appendChild(prevLi);
+
+            // Páginas
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `
+                    <button class="page-link" onclick="fetchUsers(${i})">
+                        ${i}
+                    </button>
+                `;
+                pagination.appendChild(li);
+            }
+
+            // Botão Próximo
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <button class="page-link" onclick="fetchUsers(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                    Próximo
+                </button>
+            `;
+            pagination.appendChild(nextLi);
+        }
+
+        async function showAuditLogs(userId) {
+            try {
+                const response = await fetch(`/api/users/admin/users/${userId}/logs`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar logs de auditoria');
+                }
+
+                const data = await response.json();
+                const tbody = document.getElementById('auditLogsBody');
+                tbody.innerHTML = '';
+
+                data.logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${formatDate(log.criado_em)}</td>
+                        <td>${log.acao}</td>
+                        <td>${log.usuario_nome}</td>
+                        <td>${log.ip_address}</td>
+                        <td>
+                            <button class="btn btn-sm btn-link" onclick="showLogDetails(${JSON.stringify(log).replace(/"/g, '&quot;')})">
+                                Ver Detalhes
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                const modal = new bootstrap.Modal(document.getElementById('auditLogsModal'));
+                modal.show();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        function showLogDetails(log) {
+            const details = {
+                'Dados Anteriores': log.dados_anteriores,
+                'Dados Novos': log.dados_novos
+            };
+
+            let detailsHtml = '<div class="table-responsive"><table class="table table-sm">';
+            for (const [key, value] of Object.entries(details)) {
+                if (value) {
+                    detailsHtml += `
+                        <tr>
+                            <th>${key}</th>
+                            <td><pre>${JSON.stringify(value, null, 2)}</pre></td>
+                        </tr>
+                    `;
+                }
+            }
+            detailsHtml += '</table></div>';
+
+            const modal = new bootstrap.Modal(document.getElementById('auditLogsModal'));
+            modal.hide();
+
+            setTimeout(() => {
+                alert(detailsHtml);
+                modal.show();
+            }, 100);
+        }
+
+        function openNewUserModal() {
+            const modal = new bootstrap.Modal(document.getElementById('newUserModal'));
+            modal.show();
+        }
+
+        function openEditModal(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            const form = document.getElementById('editUserForm');
+            form.id.value = user.id;
+            form.nip.value = user.nip;
+            form.bilhete_identidade.value = user.bilhete_identidade;
+            form.nome_completo.value = user.nome_completo;
+            form.email.value = user.email || '';
+            form.telefone.value = user.telefone || '';
+            form.tipo_usuario.value = user.tipo_usuario;
+            form.ativo.value = user.ativo;
+            form.bairro.value = user.bairro || '';
+            form.rua.value = user.rua || '';
+            form.municipio.value = user.municipio || '';
+            form.numero_casa.value = user.numero_casa || '';
+
+            const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            modal.show();
+        }
+
+        function openResetPasswordModal(userId) {
+            const form = document.getElementById('resetPasswordForm');
+            form.id.value = userId;
+            form.reset();
+
+            const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+            modal.show();
+        }
+
+        function openUserDetailsModal(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+            modal.show();
+
+            document.getElementById('detailNip').textContent = user.nip;
+            document.getElementById('detailBi').textContent = user.bilhete_identidade || '-';
+            document.getElementById('detailNomeCompleto').textContent = user.nome_completo;
+            document.getElementById('detailEmail').textContent = user.email || '-';
+            document.getElementById('detailTelefone').textContent = user.telefone || '-';
+            document.getElementById('detailTipoUsuario').textContent = user.tipo_usuario;
+            document.getElementById('detailStatus').textContent = user.ativo ? 'Ativo' : 'Inativo';
+            document.getElementById('detailCriadoEm').textContent = formatDate(user.criado_em);
+            document.getElementById('detailAtualizadoEm').textContent = formatDate(user.atualizado_em);
+            document.getElementById('detailBairro').textContent = user.bairro || '-';
+            document.getElementById('detailRua').textContent = user.rua || '-';
+            document.getElementById('detailMunicipio').textContent = user.municipio || '-';
+            document.getElementById('detailNumeroCasa').textContent = user.numero_casa || '-';
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Tem certeza que deseja excluir este usuário?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao excluir usuário');
+                }
+
+                showAlert('Usuário excluído com sucesso');
+                fetchUsers(); // Atualiza a lista de usuários
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        function applyFilters() {
+            fetchUsers(1);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userType');
+            window.location.href = '/login.html';
+        }
+
+        // Exibir botão de logs apenas para admin
+        const tipoUsuario = localStorage.getItem('tipo_usuario');
+        if (tipoUsuario === 'admin') {
+            document.getElementById('admin-menu').innerHTML += `
+                <button onclick="window.location.href='logs-alertas.html'" style="margin-left: 12px; background: #2f4f9f; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">Logs de Alertas</button>
+            `;
+        }
+
+        // Exibir botão Unidades apenas para admin
+        (function() {
+            // Supondo que o tipo de usuário está salvo no localStorage
+            const tipo = localStorage.getItem('tipo_usuario');
+            if(tipo === 'admin') {
+                document.getElementById('unidadesMenuItem').style.display = '';
+            }
+        })();
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUsers();
+        });
+    </script>
+</body>
+</html> 

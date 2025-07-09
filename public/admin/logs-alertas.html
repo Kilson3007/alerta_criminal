@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Logs de Alertas - Sistema de Alerta Criminal</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 0; }
+    .container { max-width: 1100px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+    h1 { color: #2f4f9f; }
+    table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+    th { background: #2f4f9f; color: #fff; }
+    tr:hover { background: #f0f4ff; }
+    .back { margin-bottom: 20px; display: inline-block; color: #2f4f9f; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="users.html" class="back">← Voltar para Gestão de Usuários</a>
+    <h1>Logs de Aceitação/Rejeição de Alertas</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Data/Hora</th>
+          <th>Policial</th>
+          <th>NIP</th>
+          <th>BI</th>
+          <th>Ação</th>
+          <th>ID do Alerta</th>
+        </tr>
+      </thead>
+      <tbody id="logs-tbody">
+        <tr><td colspan="6">Carregando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    fetch('/logs-alertas', { headers: { 'Authorization': localStorage.getItem('token') ? 'Bearer ' + localStorage.getItem('token') : '' } })
+      .then(res => res.json())
+      .then(logs => {
+        document.getElementById('logs-tbody').innerHTML = logs.length ? logs.map(log => `
+          <tr>
+            <td>${new Date(log.data_hora).toLocaleString()}</td>
+            <td>${log.policial_nome}</td>
+            <td>${log.policial_nip || ''}</td>
+            <td>${log.policial_bi || ''}</td>
+            <td>${log.acao}</td>
+            <td>${log.alerta_id}</td>
+          </tr>
+        `).join('') : '<tr><td colspan="6">Nenhum registro encontrado.</td></tr>';
+      })
+      .catch(() => {
+        document.getElementById('logs-tbody').innerHTML = '<tr><td colspan="6">Erro ao carregar logs.</td></tr>';
+      });
+  </script>
+</body>
+</html> 

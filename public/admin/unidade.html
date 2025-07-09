@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Unidades - Sistema de Alerta Criminal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        #map { height: 400px; width: 100%; margin-bottom: 20px; }
+        .required::after { content: " *"; color: red; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard.html">
+                <img src="/Policia.jpg" alt="Logo" style="height:40px;margin-right:10px;"> Sistema de Alerta Criminal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/admin/users.html">Gestão de Usuários</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/admin/unidade.html">Unidades</a></li>
+                </ul>
+                <div class="d-flex">
+                    <button class="btn btn-outline-light" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Gestão de Unidades</h2>
+            <span id="totalUnidades" class="badge bg-primary fs-5"></span>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUnidadeModal">
+                <i class="bi bi-plus-circle"></i> Nova Unidade
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Contacto</th>
+                        <th>Endereço</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="unidadesTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Modal Nova Unidade -->
+    <div class="modal fade" id="addUnidadeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nova Unidade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUnidadeForm">
+                        <div class="mb-3">
+                            <label class="form-label required">Nome</label>
+                            <input type="text" class="form-control" name="nome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Código da Unidade</label>
+                            <input type="text" class="form-control" name="codigo_unidade" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Contacto</label>
+                            <input type="text" class="form-control" name="telefone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Endereço</label>
+                            <input type="text" class="form-control" name="endereco" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Latitude</label>
+                            <input type="number" step="any" class="form-control" name="localizacao_lat" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Longitude</label>
+                            <input type="number" step="any" class="form-control" name="localizacao_lng" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Adicionar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Editar Unidade (reutilizado) -->
+    <div class="modal fade" id="editUnidadeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Unidade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUnidadeForm">
+                        <input type="hidden" name="id">
+                        <div class="mb-3">
+                            <label class="form-label required">Nome</label>
+                            <input type="text" class="form-control" name="nome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Código da Unidade</label>
+                            <input type="text" class="form-control" name="codigo_unidade" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Contacto</label>
+                            <input type="text" class="form-control" name="telefone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Endereço</label>
+                            <input type="text" class="form-control" name="endereco" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Latitude</label>
+                            <input type="number" step="any" class="form-control" name="localizacao_lat" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required">Longitude</label>
+                            <input type="number" step="any" class="form-control" name="localizacao_lng" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Função para logout (reutilizar a existente)
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    // Variáveis globais
+    let unidades = [];
+
+    // Buscar unidades
+    async function fetchUnidades() {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users/police-units', {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            credentials: 'include'
+        });
+        const data = await res.json();
+        console.log('DEBUG - Resposta da API /api/users/police-units:', data);
+        unidades = data.units || [];
+        document.getElementById('totalUnidades').textContent = `Total: ${unidades.length}`;
+        renderUnidadesTable();
+    }
+
+    // Renderizar tabela
+    function renderUnidadesTable() {
+        const tbody = document.getElementById('unidadesTableBody');
+        tbody.innerHTML = '';
+        unidades.forEach(u => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${u.nome}</td>
+                <td>${u.telefone}</td>
+                <td>${u.endereco}</td>
+                <td>${u.localizacao_lat}</td>
+                <td>${u.localizacao_lng}</td>
+                <td>
+                    <button class='btn btn-sm btn-warning' onclick='openEditUnidadeModal(${JSON.stringify(u)})'><i class='bi bi-pencil'></i></button>
+                    <button class='btn btn-sm btn-danger' onclick='deleteUnidade(${u.id})'><i class='bi bi-trash'></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Adicionar unidade
+    document.getElementById('addUnidadeForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const body = {
+            nome: form.nome.value,
+            codigo_unidade: form.codigo_unidade.value,
+            telefone: form.telefone.value,
+            endereco: form.endereco.value,
+            localizacao_lat: form.localizacao_lat.value,
+            localizacao_lng: form.localizacao_lng.value
+        };
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users/admin/units', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            credentials: 'include',
+            body: JSON.stringify(body)
+        });
+        const data = await res.json().catch(() => ({}));
+        console.log('DEBUG - Adicionar unidade:', { status: res.status, data });
+        if(res.ok) {
+            form.reset();
+            bootstrap.Modal.getInstance(document.getElementById('addUnidadeModal')).hide();
+            fetchUnidades();
+        } else {
+            alert('Erro ao adicionar unidade.\nStatus: ' + res.status + '\n' + JSON.stringify(data));
+        }
+    };
+
+    // Abrir modal de edição
+    window.openEditUnidadeModal = function(u) {
+        const form = document.getElementById('editUnidadeForm');
+        form.id.value = u.id;
+        form.nome.value = u.nome;
+        form.codigo_unidade.value = u.codigo_unidade || '';
+        form.telefone.value = u.telefone;
+        form.endereco.value = u.endereco;
+        form.localizacao_lat.value = u.localizacao_lat;
+        form.localizacao_lng.value = u.localizacao_lng;
+        new bootstrap.Modal(document.getElementById('editUnidadeModal')).show();
+    };
+
+    // Editar unidade
+    document.getElementById('editUnidadeForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const id = form.id.value;
+        const body = {
+            nome: form.nome.value,
+            codigo_unidade: form.codigo_unidade.value,
+            telefone: form.telefone.value,
+            endereco: form.endereco.value,
+            localizacao_lat: form.localizacao_lat.value,
+            localizacao_lng: form.localizacao_lng.value
+        };
+        const res = await fetch(`/users/admin/units/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(body)
+        });
+        if(res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('editUnidadeModal')).hide();
+            fetchUnidades();
+        } else {
+            alert('Erro ao editar unidade.');
+        }
+    };
+
+    // Remover unidade
+    window.deleteUnidade = async function(id) {
+        if(!confirm('Tem certeza que deseja remover esta unidade?')) return;
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/users/admin/units/${id}`, {
+            method: 'DELETE',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            credentials: 'include'
+        });
+        const data = await res.json().catch(() => ({}));
+        console.log('DEBUG - Remover unidade:', { status: res.status, data });
+        if(res.ok) {
+            fetchUnidades();
+        } else {
+            alert('Erro ao remover unidade.\nStatus: ' + res.status + '\n' + JSON.stringify(data));
+        }
+    };
+
+    // Inicialização
+    window.onload = function() {
+        fetchUnidades();
+    };
+    </script>
+</body>
+</html> 
