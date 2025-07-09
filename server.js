@@ -10,6 +10,12 @@ const cron = require('node-cron');
 const updateOldAlertsStatus = require('./services/alertStatusUpdater');
 require('dotenv').config();
 
+// Coloque a declaração de allowedOrigins logo no topo do arquivo
+const allowedOrigins = [
+  'https://alerta-criminal-1.onrender.com',
+  'http://localhost:3000'
+];
+
 // Configurar JWT_SECRET se não estiver definido
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'seu_segredo_jwt_super_secreto_para_testes';
@@ -38,11 +44,6 @@ const io = socketIo(server, {
 app.use(helmet({
   contentSecurityPolicy: false // Desabilitar para testes
 }));
-
-const allowedOrigins = [
-  'https://alerta-criminal-1.onrender.com',
-  'http://localhost:3000'
-];
 
 // CORS deve ser o PRIMEIRO middleware
 app.use(cors({
